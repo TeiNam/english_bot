@@ -30,8 +30,8 @@ class MessageScheduler:
 
     def _setup_jobs(self):
         """작업 스케줄 설정"""
-        # 매일 10시, 13시, 16시, 19시에 실행
-        schedule_times = ['10:00', '13:00', '16:00', '19:00']
+        # 실행 시간
+        schedule_times = ['08:30','10:00','11:30','13:00','14:30','16:00','17:30','19:00','20:30']
 
         for time in schedule_times:
             hour, minute = time.split(':')
