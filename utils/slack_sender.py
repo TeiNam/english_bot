@@ -3,8 +3,6 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from configs.slack_setting import get_credentials
 from typing import List, Dict, Any
-from itertools import groupby
-from operator import itemgetter
 import logging
 
 logger = logging.getLogger(__name__)
