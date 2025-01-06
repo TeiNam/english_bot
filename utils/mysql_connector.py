@@ -7,29 +7,55 @@ from typing import List, Dict, Any, Optional, Union, Tuple
 
 class MySQLConnector:
     def __init__(self):
-        self.connection = None
+        self._connection = None  # 프라이빗 변수로 변경
         self.config = MYSQL_CONFIG
+        self.is_transaction_active = False  # 트랜잭션 상태 추적
 
     def connect(self):
         """데이터베이스 연결"""
         try:
-            self.connection = mysql.connector.connect(**MYSQL_CONFIG)
-            print("MySQL 데이터베이스 연결 성공")
+            if not self._connection or not self._connection.is_connected():
+                self._connection = mysql.connector.connect(**self.config)
+                print("MySQL 데이터베이스 연결 성공")
         except Error as e:
             print(f"MySQL 연결 오류: {e}")
             raise
 
     def get_connection(self):
         """현재 연결 반환"""
-        if self.connection is None or not self.connection.is_connected():
-            self.connect()
-        return self.connection
+        self.connect()  # 연결이 없으면 새로 생성
+        return self._connection
 
     def close(self):
         """데이터베이스 연결 종료"""
-        if self.connection and self.connection.is_connected():
-            self.connection.close()
-            print("MySQL 연결이 종료되었습니다.")
+        try:
+            if self._connection and self._connection.is_connected():
+                if not self.is_transaction_active:  # 트랜잭션 중이 아닐 때만 닫기
+                    self._connection.close()
+                    self._connection = None
+                    print("MySQL 연결이 종료되었습니다.")
+        except Error as e:
+            print(f"연결 종료 오류: {e}")
+
+    def begin_transaction(self):
+        """트랜잭션 시작"""
+        self.connect()
+        self._connection.start_transaction()
+        self.is_transaction_active = True
+
+    def commit_transaction(self):
+        """트랜잭션 커밋"""
+        if self._connection and self.is_transaction_active:
+            self._connection.commit()
+            self.is_transaction_active = False
+            self.close()
+
+    def rollback_transaction(self):
+        """트랜잭션 롤백"""
+        if self._connection and self.is_transaction_active:
+            self._connection.rollback()
+            self.is_transaction_active = False
+            self.close()
 
     def escape_quotes(self, params: Union[dict, tuple, None]) -> Union[dict, tuple, None]:
         """파라미터의 문자열 값에서 큰따옴표 이스케이프 처리"""
@@ -266,22 +292,3 @@ class MySQLConnector:
                 cursor.close()
             if connection:
                 connection.close()
-
-    def begin_transaction(self):
-        """트랜잭션 시작"""
-        self.connection = mysql.connector.connect(**self.config)
-        self.connection.start_transaction()
-
-    def commit_transaction(self):
-        """트랜잭션 커밋"""
-        if hasattr(self, 'connection') and self.connection:
-            self.connection.commit()
-            self.connection.close()
-            delattr(self, 'connection')
-
-    def rollback_transaction(self):
-        """트랜잭션 롤백"""
-        if hasattr(self, 'connection') and self.connection:
-            self.connection.rollback()
-            self.connection.close()
-            delattr(self, 'connection')

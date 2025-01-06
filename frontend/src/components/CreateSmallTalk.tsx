@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createSmallTalk } from '../api/client';
+import { createSmallTalk } from '../api/index';
 import { Plus } from 'lucide-react';
 
 interface Props {

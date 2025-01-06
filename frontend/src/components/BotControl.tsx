@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getBotStatus, toggleBot, sendMessageNow } from '../api/client';
+import { getBotStatus, toggleBot, sendMessageNow } from '../api/index';
 import { Power, Send, Activity } from 'lucide-react';
+import { BotStatus } from '../types/api';
 
 interface BotStatus {
   running: boolean;

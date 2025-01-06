@@ -1,6 +1,6 @@
 # apis/routes/small_talk.py
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import List, Optional
+from typing import List, Optional, Dict
 from ..models.small_talk import (
     SmallTalk, SmallTalkCreate, SmallTalkUpdate, SmallTalkPatch
 )
@@ -8,6 +8,28 @@ from utils.mysql_connector import MySQLConnector
 from ..deps import get_db
 
 router = APIRouter(prefix="/small-talk", tags=["small-talk"])
+
+@router.get("/count", response_model=Dict[str, int])
+async def get_small_talks_count(
+    tag: Optional[str] = None,
+    db: MySQLConnector = Depends(get_db)
+) -> Dict[str, int]:
+    """스몰톡 전체 개수 조회"""
+    try:
+        query = "SELECT COUNT(*) as total FROM small_talk WHERE 1=1"
+        params = {}
+
+        if tag:
+            query += " AND tag = %(tag)s"
+            params['tag'] = tag
+
+        result = db.execute_raw_query(query, params)
+        return {"total": result[0]['total']}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get count: {str(e)}"
+        )
 
 
 @router.get("/", response_model=List[SmallTalk])
@@ -28,6 +50,9 @@ async def get_small_talks(
     if tag:
         query += " AND tag = %(tag)s"
         params['tag'] = tag
+
+    # ORDER BY 절 추가 (update_at을 기준으로 내림차순 정렬)
+    query += " ORDER BY update_at DESC"
 
     query += " LIMIT %(limit)s OFFSET %(offset)s"
     params.update({'limit': limit, 'offset': offset})
@@ -119,21 +144,17 @@ async def delete_small_talk(
         db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 삭제"""
-    # 삭제하기 전에 존재 여부 확인
-    exists = db.execute_raw_query(
-        "SELECT talk_id FROM small_talk WHERE talk_id = %(talk_id)s",
-        {'talk_id': talk_id}
-    )
-
-    if not exists:
-        raise HTTPException(status_code=404, detail="Small talk not found")
-
-    # 관련된 answer 데이터도 함께 삭제 (CASCADE)
     try:
-        # 트랜잭션 시작
-        db.begin_transaction()
+        # 삭제하기 전에 존재 여부 확인
+        exists = db.execute_raw_query(
+            "SELECT talk_id FROM small_talk WHERE talk_id = %(talk_id)s",
+            {'talk_id': talk_id}
+        )
 
-        # answer 테이블의 관련 데이터 먼저 삭제
+        if not exists:
+            raise HTTPException(status_code=404, detail="Small talk not found")
+
+        # answer 테이블의 관련 데이터 삭제
         db.execute_raw_query(
             "DELETE FROM answer WHERE talk_id = %(talk_id)s",
             {'talk_id': talk_id}
@@ -145,14 +166,11 @@ async def delete_small_talk(
             {'talk_id': talk_id}
         )
 
-        # 트랜잭션 커밋
-        db.commit_transaction()
-
         return {"status": "success", "message": "Small talk deleted successfully"}
 
+    except HTTPException:
+        raise
     except Exception as e:
-        # 오류 발생 시 롤백
-        db.rollback_transaction()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to delete small talk: {str(e)}"

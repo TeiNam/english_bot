@@ -19,3 +19,8 @@ export interface BotStatus {
   running: boolean;
   jobs?: any[];
 }
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+}

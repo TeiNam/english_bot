@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createAnswer } from '../api/client';
+import { createAnswer } from '../api/index';
 import { Plus } from 'lucide-react';
 
 interface Props {
