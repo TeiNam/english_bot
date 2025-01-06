@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SmallTalk } from '../types/api';
-import { MessageSquare, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { deleteSmallTalk } from '../api';
 
 interface Props {
@@ -59,20 +59,30 @@ export function SmallTalkList({ smallTalks = [], onSelect, selectedTalkId, onDel
                 <div>
                   <p className="text-gray-900 font-medium">{talk.eng_sentence}</p>
                   <p className="text-gray-600 mt-1">{talk.kor_sentence}</p>
+                  {talk.parenthesis && (
+                  <p className="text-gray-500 text-sm mt-2 italic">({talk.parenthesis})</p>
+                 )}
                 </div>
                 <button
-                  onClick={(e) => handleDelete(talk.talk_id, e)}
-                  disabled={isDeleting === talk.talk_id}
-                  className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                    onClick={(e) => handleDelete(talk.talk_id, e)}
+                    disabled={isDeleting === talk.talk_id}
+                    className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4"/>
                 </button>
               </div>
-              {/* ... 나머지 렌더링 코드 ... */}
+              <div className="flex items-center gap-2 mt-2">
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                {talk.tag}
+              </span>
+                <span className="text-gray-400 text-xs">
+                {new Date(talk.update_at).toLocaleDateString()}
+              </span>
+             </div>
             </div>
           </div>
         </div>
-      ))}
-    </div>
-  );
-}
+          ))}
+        </div>
+      );
+    }
