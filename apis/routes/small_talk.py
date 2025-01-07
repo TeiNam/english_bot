@@ -51,8 +51,8 @@ async def get_small_talks(
         query += " AND tag = %(tag)s"
         params['tag'] = tag
 
-    # ORDER BY 절 추가 (update_at을 기준으로 내림차순 정렬)
-    query += " ORDER BY update_at DESC"
+    # ORDER BY 절을 talk_id DESC로 변경
+    query += " ORDER BY talk_id DESC"
 
     query += " LIMIT %(limit)s OFFSET %(offset)s"
     params.update({'limit': limit, 'offset': offset})

@@ -112,6 +112,7 @@ function App() {
              onSelect={handleTalkSelect}
              selectedTalkId={selectedTalk?.talk_id}
              onDelete={handleSmallTalkDelete}
+             onUpdate={handleSmallTalkSuccess}
            />
            <Pagination
              currentPage={currentPage}

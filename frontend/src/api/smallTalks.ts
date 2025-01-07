@@ -56,7 +56,6 @@ export async function createSmallTalk(data: Omit<SmallTalk, 'talk_id' | 'update_
   }
 }
 
-// smallTalks.ts에 추가
 export async function deleteSmallTalk(talkId: number) {
   try {
     const response = await fetch(`${API_CONFIG.baseURL}/small-talk/${talkId}`, {
@@ -75,6 +74,27 @@ export async function deleteSmallTalk(talkId: number) {
     return response.json();
   } catch (error) {
     console.error('Delete error:', error);
+    throw handleApiError(error);
+  }
+}
+
+export async function updateSmallTalk(talkId: number, data: Partial<SmallTalk>) {
+  try {
+    const response = await fetch(`${API_CONFIG.baseURL}/small-talk/${talkId}`, {
+      method: 'PATCH',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Update error response:', response.status, errorData);
+      throw new Error(`Failed to update small talk: ${response.status} ${errorData}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Update error:', error);
     throw handleApiError(error);
   }
 }
