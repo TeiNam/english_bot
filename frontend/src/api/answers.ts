@@ -39,3 +39,24 @@ export async function deleteAnswer(answerId: number) {
     throw handleApiError(error);
   }
 }
+
+export async function updateAnswer(answerId: number, data: { eng_sentence: string; kor_sentence: string }) {
+  try {
+    const response = await fetch(`${API_CONFIG.baseURL}/answers/${answerId}`, {
+      method: 'PUT',
+      headers: API_CONFIG.headers,
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Update error response:', response.status, errorData);
+      throw new Error(`Failed to update answer: ${response.status} ${errorData}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Update error:', error);
+    throw handleApiError(error);
+  }
+}

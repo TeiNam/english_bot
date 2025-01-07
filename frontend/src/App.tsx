@@ -137,6 +137,11 @@ function App() {
                      loadAnswers(selectedTalk.talk_id);
                    }
                  }}
+                 onUpdate={() => {
+                   if (selectedTalk) {
+                     loadAnswers(selectedTalk.talk_id);
+                   }
+                 }}
                />
              </>
            ) : (
