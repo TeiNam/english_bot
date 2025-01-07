@@ -8,8 +8,7 @@ export async function fetchSmallTalks(tag?: string, limit = 10, offset = 0) {
     const [dataResponse, countResponse] = await Promise.all([
       fetch(`${API_CONFIG.baseURL}/small-talk?${new URLSearchParams({
         limit: limit.toString(),
-        offset: offset.toString(),
-        order: 'desc',
+        offset: offset.toString(),        
         ...(tag && { tag }),
       })}`, {
         headers: API_CONFIG.headers,
