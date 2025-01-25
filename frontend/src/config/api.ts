@@ -1,5 +1,7 @@
 // config/api.ts
 
+import {ensureHttps} from "../utils/url.ts";
+
 interface ApiConfig {
  baseURL: string;
  headers: {
@@ -12,7 +14,7 @@ interface ApiConfig {
 }
 
 const API_CONFIG: ApiConfig = {
- baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+ baseURL: ensureHttps(import.meta.env.VITE_API_URL),
  headers: {
    'Content-Type': 'application/json',
    'Accept': 'application/json',
