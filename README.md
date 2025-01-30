@@ -1,124 +1,172 @@
-# English Bot
+# English Learning Bot
 
-English Bot은 Slack과 연동된 영어 학습 봇 서비스입니다. FastAPI 기반의 백엔드와 React 기반의 프론트엔드로 구성되어 있습니다.
-
-## 기술 스택
-
-### 백엔드
-- Python
-- FastAPI
-- MySQL
-- Slack API
-
-### 프론트엔드
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- ESLint
-
-## 프로젝트 구조
-
-```
-english_bot/
-├── backend
-│   ├── apis/              # API 관련 코드
-│   ├── bots/              # 봇 핵심 로직
-│   ├── configs/           # 설정 파일
-│   ├── middlewares/       # 미들웨어
-│   ├── utils/             # 유틸리티 함수
-│   └── main.py           # 백엔드 진입점
-├── frontend/             # 프론트엔드 애플리케이션
-└── docker/              # 도커 설정
-```
+영어 학습을 위한 자동화된 Slack 메시지 발송 시스템입니다. 지정된 시간에 저장된 영어 문장을 Slack 채널로 자동 발송하여 효율적인 영어 학습을 지원합니다.
 
 ## 주요 기능
 
-### 백엔드 기능
-1. 봇 컨트롤
-   - `bots/english_bot.py`: 영어 학습 봇 핵심 로직
-   - Slack과의 실시간 통신
+### 🤖 자동화된 영어 학습
+- 하루 9번 정해진 시간에 영어 문장 자동 발송
+- 사이클 기반의 문장 반복 학습 시스템
+- 한영 번역과 부가 설명 제공
 
-2. API 엔드포인트
-   - 답변 관리 (`apis/routes/answer.py`)
-   - 봇 제어 (`apis/routes/bot.py`)
-   - Small Talk 관리 (`apis/routes/small_talk.py`)
+### 🔄 순환 학습 시스템
+- 모든 문장이 균등하게 학습될 수 있도록 사이클 관리
+- 자동 사이클 리셋 및 진행 상태 추적
 
-3. 데이터베이스 연동
-   - MySQL 연결 및 관리
-   - 스케줄러 작업
+### 🛠 관리 시스템
+- RESTful API를 통한 문장 관리
+- 태그 기반 문장 분류
+- 답변 관리 시스템
 
-### 프론트엔드 기능
-1. 답변 관리
-   - 답변 목록 조회
-   - 답변 생성 및 수정
+## 기술 스택
 
-2. Small Talk 관리
-   - Small Talk 목록 조회
-   - Small Talk 생성 및 수정
+- **Backend Framework**: FastAPI
+- **Language**: Python 3.12
+- **Database**: MySQL 8.0
+- **Message Platform**: Slack
+- **Containerization**: Docker, Docker Compose
+- **Scheduler**: APScheduler
 
-3. 봇 제어
-   - 봇 상태 관리
-   - 설정 변경
+## 시스템 요구사항
 
-## 설치 및 실행
+- Python 3.12 이상
+- Docker 및 Docker Compose
+- MySQL 8.0
+- Slack Workspace 및 Bot Token
 
-### 필수 요구사항
-- Python 3.x
-- Node.js
-- MySQL
-- Docker (선택사항)
+## 설치 방법
 
-### 백엔드 설정
-1. Python 가상환경 생성 및 활성화
+1. 저장소 클론
 ```bash
+git clone [repository-url]
+cd english_bot
+```
+
+2. 환경 변수 설정
+```bash
+cp .env.example .env
+# .env 파일을 편집하여 필요한 설정 값을 입력
+```
+
+3. Docker Compose로 실행
+```bash
+docker-compose up -d
+```
+
+## 환경 변수 설정
+
+`.env` 파일에 다음 환경 변수들을 설정해야 합니다:
+
+```env
+# MySQL 설정
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_DATABASE=eng_base
+MYSQL_USER=your_user
+MYSQL_PASSWORD=your_password
+
+# Slack 설정
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_CHANNEL_ID=your-channel-id
+```
+
+## API 엔드포인트
+
+### 영어 문장 관리
+
+#### 문장 조회
+- `GET /small-talk/`: 영어 문장 목록 조회
+- `GET /small-talk/{talk_id}`: 특정 문장 상세 조회
+- `GET /small-talk/count`: 전체 문장 수 조회
+
+#### 문장 관리
+- `POST /small-talk/`: 새로운 문장 추가
+- `PUT /small-talk/{talk_id}`: 문장 전체 수정
+- `PATCH /small-talk/{talk_id}`: 문장 부분 수정
+- `DELETE /small-talk/{talk_id}`: 문장 삭제
+
+### 답변 관리
+- `GET /answer/`: 답변 목록 조회
+- `POST /answer/`: 새로운 답변 추가
+- `PUT /answer/{answer_id}`: 답변 수정
+- `DELETE /answer/{answer_id}`: 답변 삭제
+
+## 메시지 발송 시간
+
+매일 다음 시간에 메시지가 자동 발송됩니다:
+- 08:30
+- 10:00
+- 11:30
+- 13:00
+- 14:30
+- 16:00
+- 17:30
+- 19:00
+- 20:30
+
+## 데이터베이스 스키마
+
+### small_talk 테이블
+- `talk_id`: 문장 ID (PK)
+- `eng_sentence`: 영어 문장
+- `kor_sentence`: 한국어 번역
+- `parenthesis`: 부가 설명
+- `tag`: 태그
+- `cycle_number`: 사이클 번호
+- `last_sent_at`: 마지막 발송 시간
+- `update_at`: 수정 시간
+
+### answer 테이블
+- `answer_id`: 답변 ID (PK)
+- `talk_id`: 문장 ID (FK)
+- `eng_sentence`: 영어 답변
+- `kor_sentence`: 한국어 답변
+- `update_at`: 수정 시간
+
+## 개발 환경 설정
+
+### 로컬 개발 환경
+```bash
+# 가상환경 생성 및 활성화
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-```
 
-2. 의존성 설치
-```bash
+# 의존성 설치
 pip install -r requirements.txt
-```
 
-3. 환경 변수 설정
-- MySQL 설정 (`configs/mysql_setting.py`)
-- Slack 설정 (`configs/slack_setting.py`)
-
-4. 서버 실행
-```bash
+# 개발 서버 실행
 uvicorn main:app --reload
 ```
 
-### 프론트엔드 설정
-1. 의존성 설치
+### Docker 개발 환경
 ```bash
-cd frontend
-npm install
+# 개발용 컨테이너 실행
+docker-compose up --build
+
+# 로그 확인
+docker-compose logs -f
+
+# 컨테이너 중지
+docker-compose down
 ```
 
-2. 개발 서버 실행
-```bash
-npm run dev
-```
+## 상태 확인
 
-## API 문서
-- API 테스트: `test_main.http` 파일 참조
-- Swagger UI: `http://localhost:8000/docs` (서버 실행 시)
+- API 상태 확인: `GET /health`
+- 스케줄러 상태 확인: `GET /bot/status`
 
-## 데이터베이스 구조
-- answers: 봇 답변 데이터
-- small_talks: Small Talk 데이터
+## 로깅
 
-## 기여 방법
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+로그는 다음 경로에 저장됩니다:
+- API 로그: `logs/api.log`
+- 봇 로그: `logs/bot.log`
+- 스케줄러 로그: `logs/scheduler.log`
 
-## 라이센스
-This project is licensed under the MIT License
+## 참고사항
 
-## 문의사항
-프로젝트에 대한 문의사항이나 버그 리포트는 Issues 탭을 통해 제출해 주세요.
+- 모든 시간은 Asia/Seoul 타임존 기준입니다.
+- 문장 발송은 사이클 방식으로 진행되며, 모든 문장이 한 번씩 발송된 후 새로운 사이클이 시작됩니다.
+- 환경 변수 설정이 올바르지 않으면 서비스가 정상적으로 동작하지 않을 수 있습니다.
+
+## 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 있습니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
