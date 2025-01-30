@@ -13,7 +13,7 @@ class MessageScheduler:
     _instance = None
 
     # 메시지 전송 시간 일정
-    SCHEDULE_TIMES = ['08:30', '10:00', '11:30', '13:00', '14:30', '16:00', '17:30', '19:00', '20:30']
+    SCHEDULE_TIMES = ['09:00', '13:00', '17:00', '20:00' ]
 
     def __new__(cls):
         if cls._instance is None:

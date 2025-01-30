@@ -1,11 +1,43 @@
-# Test your FastAPI endpoints
+### 환경 변수 설정
+@hostname = http://localhost:8000
+@api = {{hostname}}/bot
 
-GET http://127.0.0.1:8000/
-Accept: application/json
+### 스케줄러 시작
+POST {{api}}/start
+Content-Type: application/json
+
+### 스케줄러 종료
+POST {{api}}/stop
+Content-Type: application/json
+
+### 스케줄러 상태 확인
+GET {{api}}/status
+Content-Type: application/json
+
+### 즉시 메시지 전송
+POST {{api}}/send-now
+Content-Type: application/json
+
+### 전체 테스트 시나리오
+# 1. 스케줄러 상태 확인 (초기 상태)
+GET {{api}}/status
 
 ###
-
-GET http://127.0.0.1:8000/hello/User
-Accept: application/json
+# 2. 스케줄러 시작
+POST {{api}}/start
 
 ###
+# 3. 스케줄러 상태 확인 (실행 중 상태)
+GET {{api}}/status
+
+###
+# 4. 즉시 메시지 전송
+POST {{api}}/send-now
+
+###
+# 5. 스케줄러 종료
+POST {{api}}/stop
+
+###
+# 6. 스케줄러 상태 확인 (종료 상태)
+GET {{api}}/status

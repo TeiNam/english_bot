@@ -24,6 +24,43 @@ async def get_answers(
     return db.execute_raw_query(query, {'talk_id': talk_id})
 
 
+@router.get("/{talk_id}/count", response_model=dict)
+async def get_answers_count(
+        talk_id: int,
+        db: MySQLConnector = Depends(get_db)
+):
+    """답변 개수 조회
+
+    Args:
+        talk_id (int): 스몰톡 ID
+        db (MySQLConnector): DB 커넥터
+
+    Returns:
+        dict: talk_id와 답변 개수
+    """
+    query = """
+        SELECT 
+            talk_id,
+            COUNT(*) as answer_count
+        FROM answer
+        WHERE talk_id = %(talk_id)s
+        GROUP BY talk_id
+    """
+
+    result = db.execute_raw_query(query, {'talk_id': talk_id})
+
+    # 결과가 없으면 count를 0으로 반환
+    if not result:
+        return {
+            "talk_id": talk_id,
+            "answer_count": 0
+        }
+
+    return {
+        "talk_id": result[0]['talk_id'],
+        "answer_count": result[0]['answer_count']
+    }
+
 @router.post("/", response_model=Answer)
 async def create_answer(
         answer: AnswerCreate,
@@ -94,3 +131,4 @@ async def delete_answer(
     if result['affected_rows'] == 0:
         raise HTTPException(status_code=404, detail="Answer not found")
     return {"message": "Answer deleted"}
+

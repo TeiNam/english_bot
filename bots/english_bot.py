@@ -292,9 +292,13 @@ class EnglishBot:
         try:
             sentences = self.get_random_sentences()
             if not sentences:
+                self.logger.error("메시지를 가져오는데 실패했습니다.")
                 return False
 
-            success = SlackSender.send_message(sentences)
+            # SlackSender 인스턴스 생성
+            slack_sender = SlackSender()
+            success = slack_sender.send_message(sentences)  # 인스턴스 메서드로 호출
+
             if success:
                 self.logger.info(
                     f"메시지 전송 성공: {len(sentences)}개 문장, "

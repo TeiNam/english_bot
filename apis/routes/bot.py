@@ -65,24 +65,62 @@ async def get_scheduler_status():
         raise HTTPException(status_code=500, detail=f"Failed to get scheduler status: {str(e)}")
 
 
+# apis/routes/bot.py
 @router.post("/send-now")
 async def send_message_now():
     """즉시 메시지 전송"""
     try:
-        # 현재 사이클 정보 로깅
+        # english_bot이 실행 중인지 먼저 확인
+        if not english_bot.is_running():
+            raise HTTPException(
+                status_code=400,
+                detail="Bot is not running. Please start the bot first."
+            )
+
         current_cycle = english_bot.get_current_cycle()
-        logger.info(f"Attempting immediate message send (Current cycle: {current_cycle})")
+        logger.info(f"Current cycle before sending: {current_cycle}")
 
-        if english_bot.process_messages():
+        # process_messages 실행
+        result = english_bot.process_messages()
+
+        if result:
             new_cycle = english_bot.get_current_cycle()
-            logger.info(f"Message sent successfully (New cycle: {new_cycle})")
             return {
+                "status": "success",
                 "message": "Message sent successfully",
-                "cycle": new_cycle
+                "previous_cycle": current_cycle,
+                "new_cycle": new_cycle
             }
+        else:
+            # 실패 원인을 더 구체적으로 파악
+            logger.error("process_messages returned False. Possible reasons: no messages to send or processing error")
+            raise HTTPException(
+                status_code=400,
+                detail="No messages to process or processing error occurred. Please check if there are messages available."
+            )
 
-        logger.error("Failed to send message")
-        raise HTTPException(status_code=500, detail="Failed to send message")
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to send message: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+        logger.error(f"Unexpected error in send_message_now: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error while sending message: {str(e)}"
+        )
+
+@router.get("/bot-status")
+async def get_bot_status():
+    """봇 상태 확인"""
+    try:
+        return {
+            "is_running": english_bot.is_running(),
+            "current_cycle": english_bot.get_current_cycle(),
+            "last_message_time": english_bot.get_last_message_time(),
+            "next_message_time": english_bot.get_next_message_time() if hasattr(english_bot, 'get_next_message_time') else None
+        }
+    except Exception as e:
+        logger.error(f"Failed to get bot status: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get bot status: {str(e)}"
+        )

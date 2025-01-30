@@ -29,6 +29,7 @@ class SmallTalkPatch(BaseModel):
 
 class SmallTalk(SmallTalkBase):
     talk_id: int
+    create_at: datetime
     update_at: datetime
     answers: List[Answer] = []
 
