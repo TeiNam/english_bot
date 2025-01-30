@@ -1,1 +1,0 @@
-export const ensureHttps = (url: string) => url?.replace('http://', 'https://');

@@ -11,6 +11,11 @@ logger = logging.getLogger(__name__)
 class SlackSender:
     _instance = None
 
+    # Constants for Slack message formatting
+    MESSAGE_HEADER = "*오늘의 문장*\n\n"
+    NO_SENTENCES_MESSAGE = "No sentences available."
+    LOG_PREFIX = "[SlackSender]"
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -18,7 +23,7 @@ class SlackSender:
         return cls._instance
 
     def _initialize(self):
-        """Slack client 초기화"""
+        """Initialize the Slack client."""
         try:
             credentials = get_credentials()
             self.client = WebClient(token=credentials['bot_token'])
@@ -26,96 +31,54 @@ class SlackSender:
             self.logger = logging.getLogger(self.__class__.__name__)
             self._test_connection()
         except Exception as e:
-            logger.error(f"Slack 초기화 중 오류 발생: {str(e)}")
+            self._log_error(f"Slack 초기화 중 오류 발생: {str(e)}")
             raise
 
     def _test_connection(self):
-        """Slack 연결 테스트"""
+        """Test Slack connection."""
         try:
             response = self.client.auth_test()
-            logger.info(f"Slack 연결 성공: {response['team']} 팀의 {response['user']} 봇으로 접속")
+            self._log_info(f"Slack 연결 성공: {response['team']} 팀의 {response['user']} 봇으로 접속")
         except SlackApiError as e:
-            logger.error(f"Slack 연결 테스트 실패: {e.response['error']}")
+            self._log_error(f"Slack 연결 테스트 실패: {e.response['error']}")
             raise
-
-    def group_answers(self, sentences: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """답변들을 메인 문장별로 그룹화"""
-        if not sentences:
-            return []
-
-        result = []
-
-        try:
-            # 디버깅을 위한 로깅 추가
-            self.logger.info(f"Grouping sentences input: {sentences}")
-
-            for sentence in sentences:
-                # 기본 문장 정보
-                main_sentence = {
-                    'talk_id': sentence['talk_id'],
-                    'eng_sentence': sentence['eng_sentence'],
-                    'kor_sentence': sentence['kor_sentence'],
-                    'parenthesis': sentence['parenthesis'],
-                    'tag': sentence.get('tag', ''),
-                    'answers': sentence.get('answers', [])  # 답변 배열을 직접 사용
-                }
-                result.append(main_sentence)
-
-                # 디버깅을 위한 로깅 추가
-                self.logger.info(
-                    f"Processed sentence: talk_id={sentence['talk_id']}, answers_count={len(main_sentence['answers'])}")
-
-        except Exception as e:
-            self.logger.error(f"답변 그룹화 중 오류 발생: {str(e)}")
-            raise
-
-        return result
 
     def format_message(self, sentences: List[Dict[str, Any]]) -> str:
-        """메시지를 포매팅"""
-        try:
-            if not sentences:
-                return "No sentences available."
+        """Format sentences into a Slack message."""
+        if not sentences:
+            return self.NO_SENTENCES_MESSAGE
 
-            message = "*오늘의 문장*\n\n"
+        message = self.MESSAGE_HEADER
+        for i, sentence in enumerate(sentences, 1):
+            message += self._format_sentence(i, sentence)
+            if i < len(sentences):
+                message += "\n"  # Add spacing between sentences
 
-            # group_answers 호출하지 않고 직접 처리
-            for i, sentence in enumerate(sentences, 1):
-                # 디버깅을 위한 로깅 추가
-                self.logger.info(f"Formatting sentence {i}: {sentence}")
-
-                # 메인 문장 (태그 포함)
-                tag_str = f" `#{sentence['tag']}`" if sentence.get('tag') else ""
-                message += (f"{i}. *\"{sentence['eng_sentence']}\"* - "
-                            f"\"{sentence['kor_sentence']}\"{tag_str}\n")
-
-                # 부가 설명
-                if sentence.get('parenthesis'):
-                    message += f"   _- {sentence['parenthesis']}_\n"
-
-                # 답변이 있는 경우에만 트리 구조 표시
-                answers = sentence.get('answers', [])
-                if answers:
-                    self.logger.info(f"Processing {len(answers)} answers for sentence {i}")
-                    for j, answer in enumerate(answers):
-                        prefix = "└──" if j == len(answers) - 1 else "├──"
-                        message += (f"   {prefix} *\"{answer['eng_sentence']}\"* - "
-                                    f"\"{answer['kor_sentence']}\"\n")
-
-                # 문장 사이 공백
-                if i < len(sentences):
-                    message += "\n"
-
-        except Exception as e:
-            self.logger.error(f"메시지 포매팅 중 오류 발생: {str(e)}")
-            raise
-
-        # 최종 메시지 로깅
-        self.logger.info(f"Final formatted message:\n{message}")
+        self._log_debug(f"Formatted message: {message}")
         return message
 
+    def _format_sentence(self, index: int, sentence: Dict[str, Any]) -> str:
+        """Format an individual sentence."""
+        tag_part = f" `#{sentence['tag']}`" if sentence.get('tag') else ""
+        result = (f"{index}. *\"{sentence['eng_sentence']}\"* - "
+                  f"\"{sentence['kor_sentence']}\"{tag_part}\n")
+        if sentence.get('parenthesis'):
+            result += f"   _- {sentence['parenthesis']}_\n"
+        if 'answers' in sentence and sentence['answers']:
+            result += self._format_answers(sentence.get('answers', []))
+        return result
+
+    def _format_answers(self, answers: List[Dict[str, Any]]) -> str:
+        """Format answers for a sentence."""
+        result = ""
+        for j, answer in enumerate(answers):
+            prefix = "└──" if j == len(answers) - 1 else "├──"
+            result += (f"   {prefix} *\"{answer['eng_sentence']}\"* - "
+                       f"\"{answer['kor_sentence']}\"\n")
+        return result
+
     def send_message(self, sentences: List[Dict[str, Any]]) -> bool:
-        """슬랙으로 메시지 전송"""
+        """Send a formatted message to Slack."""
         try:
             message = self.format_message(sentences)
             response = self.client.chat_postMessage(
@@ -123,21 +86,26 @@ class SlackSender:
                 text=message,
                 mrkdwn=True
             )
-
             if response['ok']:
-                logger.info(f"메시지 전송 성공: {len(sentences)}개 문장")
+                self._log_info(f"메시지 전송 성공: {len(sentences)}개 문장")
                 return True
             else:
-                logger.error(f"메시지 전송 실패: {response.get('error', 'Unknown error')}")
+                self._log_error(f"메시지 전송 실패: {response.get('error', 'Unknown error')}")
                 return False
-
         except SlackApiError as e:
-            logger.error(f"Slack API 오류: {e.response['error']}")
-            return False
+            self._log_error(f"Slack API 오류: {e.response['error']}")
         except Exception as e:
-            logger.error(f"메시지 전송 중 예상치 못한 오류: {str(e)}")
-            return False
+            self._log_error(f"메시지 전송 중 오류 발생: {str(e)}")
+        return False
 
+    def _log_info(self, message: str):
+        """Log informational messages."""
+        logger.info(f"{self.LOG_PREFIX} {message}")
 
-# 싱글톤 인스턴스 생성
-slack_sender = SlackSender()
+    def _log_error(self, message: str):
+        """Log error messages."""
+        logger.error(f"{self.LOG_PREFIX} {message}")
+
+    def _log_debug(self, message: str):
+        """Log debug messages."""
+        logger.debug(f"{self.LOG_PREFIX} {message}")

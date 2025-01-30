@@ -1,7 +1,7 @@
 # bots/english_bot.py
 import os
 from utils.mysql_connector import MySQLConnector
-from utils.slack_sender import slack_sender
+from utils.slack_sender import SlackSender
 from utils.time_utils import (
     get_current_utc, format_utc
 )
@@ -30,7 +30,7 @@ class EnglishBot:
     def _initialize(self):
         """봇 초기화"""
         self.db = MySQLConnector()
-        self.sentences_per_message = int(os.getenv('SENTENCES_PER_MESSAGE', 3))
+        self.sentences_per_message = int(os.getenv('SENTENCES_PER_MESSAGE', 1))
         self._running = False
         self._thread = None
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -294,7 +294,7 @@ class EnglishBot:
             if not sentences:
                 return False
 
-            success = slack_sender.send_message(sentences)
+            success = SlackSender.send_message(sentences)
             if success:
                 self.logger.info(
                     f"메시지 전송 성공: {len(sentences)}개 문장, "
