@@ -4,7 +4,8 @@ from utils.mysql_connector import MySQLConnector
 from passlib.context import CryptContext
 from .user import User
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt에서 pbkdf2_sha256으로 변경
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 class AuthService:
@@ -24,7 +25,6 @@ class AuthService:
         Returns:
             Optional[User]: 인증된 사용자 정보 또는 None
         """
-        # 사용자 조회
         results = self.db.select(
             table="user",
             where={"email": email, "is_active": "Y"}
