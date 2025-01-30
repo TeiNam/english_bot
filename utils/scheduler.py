@@ -80,11 +80,11 @@ class MessageScheduler:
             logger.error(f"스케줄러와 봇 정지 실패: {str(e)}")
 
     def get_jobs(self):
-        """현재 등록된 스케줄 작업 목록 반환"""
+        """현재 스케줄된 작업 목록 반환 (KST)"""
         return [
             {
                 'id': job.id,
-                'next_run_time': format_kst(job.next_run_time) if job.next_run_time else None
+                'next_run_time': job.next_run_time.isoformat() if job.next_run_time else None
             }
             for job in self.scheduler.get_jobs()
         ]

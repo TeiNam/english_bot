@@ -1,6 +1,7 @@
 # apis/routes/bot.py
 from fastapi import APIRouter, HTTPException
 from bots.english_bot import english_bot
+from utils.mysql_connector import MySQLConnector
 from utils.scheduler import message_scheduler
 import logging
 
@@ -45,42 +46,43 @@ async def stop_scheduler():
         raise HTTPException(status_code=500, detail=f"Failed to stop scheduler: {str(e)}")
 
 
-@router.get("/status")
-async def get_scheduler_status():
-    """스케줄러 상태 확인"""
-    try:
-        is_running = message_scheduler.is_running()
-        response = {
-            "running": is_running,
-        }
-
-        # 실행 중일 경우 스케줄된 작업 정보도 포함
-        if is_running:
-            response["jobs"] = message_scheduler.get_jobs()
-
-        logger.info(f"Scheduler status checked - running: {is_running}")
-        return response
-    except Exception as e:
-        logger.error(f"Failed to get scheduler status: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get scheduler status: {str(e)}")
-
-
-# apis/routes/bot.py
 @router.post("/send-now")
 async def send_message_now():
     """즉시 메시지 전송"""
     try:
-        # english_bot이 실행 중인지 먼저 확인
         if not english_bot.is_running():
             raise HTTPException(
                 status_code=400,
                 detail="Bot is not running. Please start the bot first."
             )
 
-        current_cycle = english_bot.get_current_cycle()
-        logger.info(f"Current cycle before sending: {current_cycle}")
+        # 데이터 존재 여부 체크
+        db = MySQLConnector()
+        count_result = db.execute_raw_query("""
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN cycle_number IS NULL OR cycle_number = 0 THEN 1 ELSE 0 END) as available
+            FROM small_talk
+        """)
 
-        # process_messages 실행
+        total = count_result[0]['total']
+        available = count_result[0]['available']
+
+        if total == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="No messages found in database. Please add some messages first."
+            )
+
+        if available == 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"All {total} messages have been sent in current cycle. Consider resetting the cycle."
+            )
+
+        current_cycle = english_bot.get_current_cycle()
+        logger.info(f"Current cycle: {current_cycle}, Total messages: {total}, Available messages: {available}")
+
         result = english_bot.process_messages()
 
         if result:
@@ -89,14 +91,16 @@ async def send_message_now():
                 "status": "success",
                 "message": "Message sent successfully",
                 "previous_cycle": current_cycle,
-                "new_cycle": new_cycle
+                "new_cycle": new_cycle,
+                "stats": {
+                    "total_messages": total,
+                    "available_messages": available
+                }
             }
         else:
-            # 실패 원인을 더 구체적으로 파악
-            logger.error("process_messages returned False. Possible reasons: no messages to send or processing error")
             raise HTTPException(
                 status_code=400,
-                detail="No messages to process or processing error occurred. Please check if there are messages available."
+                detail=f"Failed to process messages. Total: {total}, Available: {available}"
             )
 
     except HTTPException:
@@ -112,12 +116,16 @@ async def send_message_now():
 async def get_bot_status():
     """봇 상태 확인"""
     try:
-        return {
+        status = {
             "is_running": english_bot.is_running(),
             "current_cycle": english_bot.get_current_cycle(),
             "last_message_time": english_bot.get_last_message_time(),
-            "next_message_time": english_bot.get_next_message_time() if hasattr(english_bot, 'get_next_message_time') else None
+            "scheduler": {
+                "is_running": message_scheduler.is_running(),
+                "jobs": message_scheduler.get_jobs() if message_scheduler.is_running() else []
+            }
         }
+        return status
     except Exception as e:
         logger.error(f"Failed to get bot status: {str(e)}", exc_info=True)
         raise HTTPException(

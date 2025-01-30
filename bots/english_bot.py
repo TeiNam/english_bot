@@ -1,9 +1,10 @@
 # bots/english_bot.py
+import datetime
 import os
 from utils.mysql_connector import MySQLConnector
 from utils.slack_sender import SlackSender
 from utils.time_utils import (
-    get_current_utc, format_utc
+    get_current_utc, format_utc, format_kst
 )
 from typing import Optional, List, Dict, Any, Tuple
 import threading
@@ -34,6 +35,7 @@ class EnglishBot:
         self._running = False
         self._thread = None
         self.logger = logging.getLogger(self.__class__.__name__)
+        self._last_message_time = None
 
     def get_current_cycle(self) -> int:
         """현재 사이클 번호를 가져옵니다."""
@@ -295,9 +297,12 @@ class EnglishBot:
                 self.logger.error("메시지를 가져오는데 실패했습니다.")
                 return False
 
-            # SlackSender 인스턴스 생성
+            # 디버깅을 위한 로그 추가
+            self.logger.info(f"Retrieved sentences: {sentences}")
+
+            # SlackSender 인스턴스 생성 및 메시지 전송
             slack_sender = SlackSender()
-            success = slack_sender.send_message(sentences)  # 인스턴스 메서드로 호출
+            success = slack_sender.send_message(sentences)
 
             if success:
                 self.logger.info(
@@ -305,12 +310,12 @@ class EnglishBot:
                     f"시간: {format_utc(get_current_utc())}"
                 )
             else:
-                self.logger.error("메시지 전송 실패")
+                self.logger.error("Slack 메시지 전송 실패")
 
             return success
 
         except Exception as e:
-            self.logger.error(f"메시지 처리 중 오류 발생: {str(e)}")
+            self.logger.error(f"메시지 처리 중 오류 발생: {str(e)}", exc_info=True)
             return False
 
     def start(self) -> bool:
@@ -338,6 +343,23 @@ class EnglishBot:
     def is_running(self) -> bool:
         """봇 실행 상태 확인"""
         return self._running
+
+    def get_last_message_time(self) -> Optional[str]:
+        """마지막 메시지 전송 시간 반환 (KST)"""
+        try:
+            query = """
+                SELECT MAX(last_sent_at) as last_sent
+                FROM small_talk
+                WHERE last_sent_at IS NOT NULL
+            """
+            result = self.db.execute_raw_query(query)
+            if result and result[0]['last_sent']:
+                # UTC 시간을 KST로 변환하여 문자열로 반환
+                return format_kst(result[0]['last_sent'])
+            return None
+        except Exception as e:
+            self.logger.error(f"마지막 전송 시간 조회 중 오류 발생: {str(e)}")
+            return None
 
 
 # 싱글톤 인스턴스

@@ -41,3 +41,6 @@ POST {{api}}/stop
 ###
 # 6. 스케줄러 상태 확인 (종료 상태)
 GET {{api}}/status
+
+### 7. 봇 상태 확인 (중지 후)
+GET {{api}}/bot-status
