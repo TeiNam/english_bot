@@ -32,6 +32,7 @@ RUN useradd -m -u 1000 appuser
 
 # 빌더 스테이지에서 설치된 패키지 복사
 COPY --from=builder /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # 애플리케이션 코드 복사
 COPY . .
