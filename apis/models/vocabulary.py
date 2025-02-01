@@ -12,7 +12,7 @@ class VocabularyMeaningCreate(BaseModel):
     """의미 생성 모델"""
     meaning: str
     classes: str = Field(default="기타")  # 기본값 설정
-    example: str = Field(default="-")     # 기본값 설정
+    example: str = Field(default="예문 없음")     # 기본값 설정
     parenthesis: Optional[str] = None
 
 class VocabularyMeaning(BaseModel):

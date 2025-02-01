@@ -103,10 +103,15 @@ async def get_vocabularies(
         # 데이터 조회
         query = """
                 SELECT 
-                    v.vocabulary_id, v.word, v.past_tense, v.past_participle, v.rule, 
-                    v.cycle, v.create_at, v.update_at,
-                    vm.meaning_id, vm.meaning, vm.classes, vm.example, vm.parenthesis, 
-                    vm.order_no, vm.create_at as meaning_create_at, vm.update_at as meaning_update_at
+                    v.*, 
+                    vm.meaning_id,
+                    vm.meaning,
+                    vm.classes,
+                    vm.example,
+                    vm.parenthesis,
+                    vm.order_no,
+                    vm.create_at as meaning_create_at,
+                    vm.update_at as meaning_update_at
                 FROM vocabulary v
                 LEFT JOIN vocabulary_meaning vm 
                     ON v.vocabulary_id = vm.vocabulary_id
@@ -136,12 +141,21 @@ async def get_vocabularies(
 async def get_vocabulary(vocabulary_id: int, db: MySQLConnector = Depends(get_db)):
     """단어 상세 조회"""
     query = """
-        SELECT v.*, vm.* 
-        FROM vocabulary v
-        LEFT JOIN vocabulary_meaning vm 
-            ON v.vocabulary_id = vm.vocabulary_id 
-        WHERE v.vocabulary_id = %(vocabulary_id)s
-    """
+            SELECT 
+                v.*, 
+                vm.meaning_id,
+                vm.meaning,
+                vm.classes,
+                vm.example,
+                vm.parenthesis,
+                vm.order_no,
+                vm.create_at as meaning_create_at,
+                vm.update_at as meaning_update_at
+            FROM vocabulary v
+            LEFT JOIN vocabulary_meaning vm 
+                ON v.vocabulary_id = vm.vocabulary_id 
+            WHERE v.vocabulary_id = %(vocabulary_id)s
+        """
     results = db.execute_raw_query(query, {'vocabulary_id': vocabulary_id})
     if not results:
         raise HTTPException(status_code=404, detail="단어를 찾을 수 없습니다")
@@ -294,6 +308,38 @@ async def delete_vocabulary(
         )
 
 
+@router.get("/meanings/counts")  # 라우트 경로 변경
+async def get_vocabulary_meaning_counts_by_ids(
+        vocabulary_ids: List[int] = Query(
+            ...,  # ... means required
+            description="조회할 어휘 ID 목록",
+            example=[1, 2, 3]
+        ),
+        db: MySQLConnector = Depends(get_db)
+):
+    try:
+        if not vocabulary_ids:
+            return {}
+
+        query = """
+            SELECT 
+                vocabulary_id, 
+                COUNT(*) as count 
+            FROM vocabulary_meaning 
+            WHERE vocabulary_id IN ({})
+            GROUP BY vocabulary_id
+        """.format(','.join(['%s'] * len(vocabulary_ids)))
+
+        result = db.execute_raw_query(query, tuple(vocabulary_ids))
+
+        return {row['vocabulary_id']: row['count'] for row in result}  # int 변환 제거 (이미 int 타입)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"의미 개수 조회 실패: {str(e)}"
+        )
+
 def _group_vocabulary_results(results: List[Dict]) -> List[Dict]:
     """쿼리 결과를 단어별로 그룹화"""
     vocabularies = {}
@@ -315,14 +361,14 @@ def _group_vocabulary_results(results: List[Dict]) -> List[Dict]:
         if meaning_id := row.get('meaning_id'):
             vocabularies[vocab_id]['meanings'].append({
                 'meaning_id': meaning_id,
-                'vocabulary_id': vocab_id,  # vocabulary_id 추가
+                'vocabulary_id': vocab_id,
                 'meaning': row['meaning'],
                 'classes': row['classes'],
                 'example': row['example'],
                 'parenthesis': row['parenthesis'],
                 'order_no': row['order_no'],
-                'create_at': row['create_at'],  # create_at 추가
-                'update_at': row['update_at']   # update_at 추가
+                'create_at': row['meaning_create_at'],    # 변경된 이름 사용
+                'update_at': row['meaning_update_at']     # 변경된 이름 사용
             })
 
     return list(vocabularies.values())
