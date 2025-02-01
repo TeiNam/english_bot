@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from utils.dependencies import get_current_user
 
 router = APIRouter(
-    prefix="/protected",
+    prefix="/api/v1/protected",
     tags=["보호된 리소스"]
 )
 

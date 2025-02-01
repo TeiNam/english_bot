@@ -6,7 +6,7 @@ from apis.models.vocabulary import VocabularyCreate, VocabularyUpdate, Vocabular
 from apis.deps import get_db
 from utils.mysql_connector import MySQLConnector
 
-router = APIRouter(prefix="/vocabulary", tags=["vocabulary"])
+router = APIRouter(prefix="/api/v1/vocabulary", tags=["vocabulary"])
 
 
 # 페이지네이션 응답 모델
@@ -18,6 +18,58 @@ class PaginatedVocabulary(BaseModel):
     total_pages: int
     has_next: bool
     has_prev: bool
+
+@router.get("/text-search", response_model=PaginatedVocabulary)
+async def search_vocabularies(
+    q: str = Query(..., description="검색어"),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=10, le=100),
+    db: MySQLConnector = Depends(get_db)
+):
+    """단어 전문 검색 (영어 단어)"""
+    try:
+        count_query = """
+            SELECT COUNT(*) as total 
+            FROM vocabulary 
+            WHERE MATCH(word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE)
+        """
+        total = db.execute_raw_query(count_query, {'query': q})[0]['total']
+        total_pages = (total + size - 1) // size
+        offset = (page - 1) * size
+
+        query = """
+            SELECT 
+                v.vocabulary_id, v.word, v.past_tense, v.past_participle, v.rule, 
+                v.cycle, v.create_at, v.update_at,
+                vm.meaning_id, vm.meaning, vm.classes, vm.example, vm.parenthesis, 
+                vm.order_no, vm.create_at as meaning_create_at, vm.update_at as meaning_update_at
+            FROM vocabulary v
+            LEFT JOIN vocabulary_meaning vm ON v.vocabulary_id = vm.vocabulary_id
+            WHERE MATCH(v.word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE)
+            ORDER BY MATCH(v.word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE) DESC, v.create_at DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """
+        results = db.execute_raw_query(query, {
+            'query': q,
+            'limit': size,
+            'offset': offset
+        })
+
+        items = _group_vocabulary_results(results)
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "size": size,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"단어 검색 실패: {str(e)}"
+        )
 
 
 @router.get("/count", response_model=Dict[str, int])

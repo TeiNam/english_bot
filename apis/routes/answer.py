@@ -5,7 +5,7 @@ from ..models.answer import Answer, AnswerCreate, AnswerUpdate
 from utils.mysql_connector import MySQLConnector
 from ..deps import get_db
 
-router = APIRouter(prefix="/answers", tags=["answers"])
+router = APIRouter(prefix="/api/v1/answers", tags=["answers"])
 
 
 @router.get("/{talk_id}", response_model=List[Answer])

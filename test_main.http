@@ -44,3 +44,58 @@ GET {{api}}/status
 
 ### 7. 봇 상태 확인 (중지 후)
 GET {{api}}/bot-status
+
+
+### 단어 검색 API 테스트
+
+# 기본 검색
+GET http://localhost:8000/vocabulary/search?q=deliver
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 페이지네이션 포함 검색
+GET http://localhost:8000/vocabulary/search?q=go&page=1&size=5
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 여러 단어 검색
+GET http://localhost:8000/vocabulary/search?q=go+comes
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 부분 단어 검색 (와일드카드)
+GET http://localhost:8000/vocabulary/search?q=go*
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 대소문자 구분 없는 검색
+GET http://localhost:8000/vocabulary/search?q=GO
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 로그인하여 토큰 받기
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+
+{
+    "email": "teinam@rastalion.me",
+    "password": "Rjadmsrhdid2@"
+}
+
+### 응답으로 받은 토큰을 환경변수로 설정
+@auth_token = {{login.response.body.access_token}}
+
+### 이제 이 토큰으로 단어 검색 API 호출
+GET http://localhost:8000/vocabulary/search?q=go
+Authorization: Bearer {{auth_token}}
+Accept: application/json
+
+### 단어 검색 API 테스트
+GET http://localhost:8000/api/v1/vocabulary/text-search?q=deliver
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+### 페이지네이션 포함 검색
+GET http://localhost:8000/api/v1/vocabulary/text-search?q=go&page=1&size=5
+Accept: application/json
+Authorization: Bearer {{auth_token}}

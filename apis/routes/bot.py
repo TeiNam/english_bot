@@ -8,7 +8,7 @@ import logging
 # 로거 설정
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/bot", tags=["bot"])
+router = APIRouter(prefix="/api/v1/bot", tags=["bot"])
 
 
 @router.post("/start")

@@ -5,7 +5,7 @@ from utils.auth import create_access_token
 from apis.models.auth_service import AuthService
 from datetime import timedelta
 
-router = APIRouter(prefix="/auth", tags=["인증"])
+router = APIRouter(prefix="/api/v1/auth", tags=["인증"])
 
 
 class UserLogin(BaseModel):

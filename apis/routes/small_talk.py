@@ -8,7 +8,7 @@ from ..models.small_talk import (
 from utils.mysql_connector import MySQLConnector
 from ..deps import get_db
 
-router = APIRouter(prefix="/small-talk", tags=["small-talk"])
+router = APIRouter(prefix="/api/v1/small-talk", tags=["small-talk"])
 
 # 페이지네이션 응답을 위한 모델 추가
 class PaginatedSmallTalk(BaseModel):
