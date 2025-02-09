@@ -1,49 +1,87 @@
 # utils/auth.py
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
-import jwt
-import os
+from configs.jwt_setting import JWT_CONFIG
+from utils.mysql_connector import MySQLConnector
+from apis.deps import get_db
+from pydantic import BaseModel
 
-# 환경 변수에서 시크릿 키 가져오기 (없으면 기본값 사용)
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24시간
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """JWT 액세스 토큰 생성
+class User(BaseModel):
+    user_id: int
+    email: str
+    username: str
+    is_active: str = 'Y'
 
-    Args:
-        data (dict): 토큰에 인코딩할 데이터
-        expires_delta (timedelta, optional): 만료 시간 델타
 
-    Returns:
-        str: 생성된 JWT 토큰
-    """
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+    """액세스 토큰 생성"""
     to_encode = data.copy()
-
-    # 만료 시간 설정
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=ALGORITHM)
-
+    encoded_jwt = jwt.encode(to_encode, JWT_CONFIG['secret_key'], algorithm=JWT_CONFIG['algorithm'])
     return encoded_jwt
 
 
-def verify_token(token: str) -> dict:
-    """JWT 토큰 검증
+async def verify_token(token: str = Depends(oauth2_scheme)) -> dict:
+    """토큰 검증"""
+    try:
+        payload = jwt.decode(token, JWT_CONFIG['secret_key'], algorithms=[JWT_CONFIG['algorithm']])
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    Args:
-        token (str): 검증할 JWT 토큰
 
-    Returns:
-        dict: 디코딩된 토큰 데이터
+async def get_current_user(
+       token: str = Depends(oauth2_scheme),
+       db: MySQLConnector = Depends(get_db)
+) -> User:
+   """현재 사용자 정보 조회"""
+   credentials_exception = HTTPException(
+       status_code=status.HTTP_401_UNAUTHORIZED,
+       detail="Could not validate credentials",
+       headers={"WWW-Authenticate": "Bearer"},
+   )
 
-    Raises:
-        jwt.InvalidTokenError: 유효하지 않은 토큰
-    """
-    return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+   try:
+       payload = jwt.decode(
+           token,
+           JWT_CONFIG['secret_key'],
+           algorithms=[JWT_CONFIG['algorithm']]
+       )
+
+       email: str = payload.get("sub")
+       user_id: int = payload.get("user_id")
+       if email is None or user_id is None:
+           raise credentials_exception
+
+       query = """
+           SELECT user_id, email, username, is_active
+           FROM `user` 
+           WHERE user_id = %(user_id)s 
+           AND email = %(email)s
+           AND is_active = 'Y'
+       """
+       result = db.execute_raw_query(query, {"user_id": user_id, "email": email})
+
+       if not result:
+           raise credentials_exception
+
+       return User(**result[0])
+
+   except JWTError:
+       raise credentials_exception
+   except Exception:
+       raise credentials_exception

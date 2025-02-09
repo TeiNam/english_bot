@@ -1,13 +1,13 @@
 # apis/models/user.py
-from dataclasses import dataclass
-from datetime import datetime
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
-@dataclass
-class User:
+class User(BaseModel):
     user_id: int
-    username: str
-    password: str
     email: str
-    is_active: str  # 'Y' or 'N'
-    create_at: datetime
-    update_at: datetime
+    username: str
+    is_admin: bool = False
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+    user_id: Optional[int] = None

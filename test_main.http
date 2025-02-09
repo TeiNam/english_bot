@@ -74,7 +74,7 @@ Accept: application/json
 Authorization: Bearer {{auth_token}}
 
 ### 로그인하여 토큰 받기
-POST http://localhost:8000/auth/login
+POST http://localhost:8000/api/v1/auth/login
 Content-Type: application/json
 
 {
@@ -83,19 +83,95 @@ Content-Type: application/json
 }
 
 ### 응답으로 받은 토큰을 환경변수로 설정
-@auth_token = {{login.response.body.access_token}}
+@auth_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5MTk1MTQ4fQ.xuH6kJZi7pLxLSyDRhOLKfDc8BHdUVq875j9Mg47UYY
 
-### 이제 이 토큰으로 단어 검색 API 호출
-GET http://localhost:8000/vocabulary/search?q=go
-Authorization: Bearer {{auth_token}}
-Accept: application/json
+### 응답으로 받은 토큰을 아래 테스트에서 사용
 
-### 단어 검색 API 테스트
-GET http://localhost:8000/api/v1/vocabulary/text-search?q=deliver
-Accept: application/json
-Authorization: Bearer {{auth_token}}
+### 2. 현재 문장 조회 (토큰 필요)
+GET http://localhost:8000/api/v1/small-talk/sentence
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5MTk1MTQ4fQ.xuH6kJZi7pLxLSyDRhOLKfDc8BHdUVq875j9Mg47UYY
+Content-Type: application/json
 
-### 페이지네이션 포함 검색
-GET http://localhost:8000/api/v1/vocabulary/text-search?q=go&page=1&size=5
-Accept: application/json
-Authorization: Bearer {{auth_token}}
+### 3. 다음 문장 조회 (토큰 필요)
+GET http://localhost:8000/api/v1/small-talk/sentence?direction=next&current_talk_id=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5MTk1MTQ4fQ.xuH6kJZi7pLxLSyDRhOLKfDc8BHdUVq875j9Mg47UYY
+Content-Type: application/json
+
+### 4. 이전 문장 조회 (토큰 필요)
+GET http://localhost:8000/api/v1/small-talk/sentence?direction=prev&current_talk_id=5
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+### 5. 마지막 문장에서 다음 문장 조회 - 첫 문장으로 순환 (토큰 필요)
+GET http://localhost:8000/api/v1/small-talk/sentence?direction=next&current_talk_id=246
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+### 6. 스몰톡 목록 조회 (토큰 불필요)
+GET http://localhost:8000/api/v1/small-talk?page=1&size=10
+Content-Type: application/json
+
+### 7. 태그별 스몰톡 목록 조회 (토큰 불필요)
+GET http://localhost:8000/api/v1/small-talk?tag=일상&page=1&size=10
+Content-Type: application/json
+
+### 8. 스몰톡 상세 조회 (토큰 불필요)
+GET http://localhost:8000/api/v1/small-talk/5
+Content-Type: application/json
+
+### 9. 스몰톡 생성 (관리자 토큰 필요)
+POST http://localhost:8000/api/v1/small-talk
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+    "eng_sentence": "How's the weather today?",
+    "kor_sentence": "오늘 날씨가 어때요?",
+    "parenthesis": "날씨에 대해 묻는 표현",
+    "tag": "날씨"
+}
+
+### 10. 스몰톡 전체 수정 (관리자 토큰 필요)
+PUT http://localhost:8000/api/v1/small-talk/5
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+    "eng_sentence": "The weather is nice today.",
+    "kor_sentence": "오늘 날씨가 좋네요.",
+    "parenthesis": "날씨에 대한 의견",
+    "tag": "날씨"
+}
+
+### 11. 스몰톡 부분 수정 (관리자 토큰 필요)
+PATCH http://localhost:8000/api/v1/small-talk/5
+Authorization: Bearer your_access_token_here
+Content-Type: application/json
+
+{
+    "eng_sentence": "The weather is beautiful today."
+}
+
+### 12. 스몰톡 삭제 (관리자 토큰 필요)
+DELETE http://localhost:8000/api/v1/small-talk/5
+Authorization: Bearer your_access_token_here
+
+### 13. 잘못된 토큰으로 요청
+GET http://localhost:8000/api/v1/small-talk/sentence
+Authorization: Bearer invalid_token
+Content-Type: application/json
+
+### 14. 토큰 없이 요청 (필수 토큰)
+GET http://localhost:8000/api/v1/small-talk/sentence
+Content-Type: application/json
+
+### 15. 관리자가 아닌 사용자로 관리자 기능 요청
+POST http://localhost:8000/api/v1/small-talk
+Authorization: Bearer normal_user_token
+Content-Type: application/json
+
+{
+    "eng_sentence": "Test sentence",
+    "kor_sentence": "테스트 문장",
+    "tag": "테스트"
+}

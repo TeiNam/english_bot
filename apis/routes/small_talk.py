@@ -1,16 +1,17 @@
 # apis/routes/small_talk.py
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from pydantic import BaseModel
+from enum import Enum
 from ..models.small_talk import (
     SmallTalk, SmallTalkCreate, SmallTalkUpdate, SmallTalkPatch
 )
 from utils.mysql_connector import MySQLConnector
+from utils.auth import get_current_user
 from ..deps import get_db
 
 router = APIRouter(prefix="/api/v1/small-talk", tags=["small-talk"])
 
-# 페이지네이션 응답을 위한 모델 추가
 class PaginatedSmallTalk(BaseModel):
     items: List[SmallTalk]
     total: int
@@ -20,6 +21,10 @@ class PaginatedSmallTalk(BaseModel):
     has_next: bool
     has_prev: bool
 
+class Direction(str, Enum):
+    CURRENT = "current"
+    PREV = "prev"
+    NEXT = "next"
 
 @router.get("/count", response_model=Dict[str, int])
 async def get_small_talks_count(
@@ -43,16 +48,14 @@ async def get_small_talks_count(
             detail=f"Failed to get count: {str(e)}"
         )
 
-
 @router.get("/", response_model=PaginatedSmallTalk)
 async def get_small_talks(
-        tag: Optional[str] = None,
-        page: int = Query(default=1, ge=1),  # 페이지는 1부터 시작
-        size: int = Query(default=10, le=100),
-        db: MySQLConnector = Depends(get_db)
+    tag: Optional[str] = None,
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=10, le=100),
+    db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 목록 조회 (페이지네이션)"""
-    # 전체 데이터 수 조회
     count_query = "SELECT COUNT(*) as total FROM small_talk WHERE 1=1"
     count_params = {}
 
@@ -62,11 +65,9 @@ async def get_small_talks(
 
     total = db.execute_raw_query(count_query, count_params)[0]['total']
 
-    # 페이지네이션 계산
     total_pages = (total + size - 1) // size
     offset = (page - 1) * size
 
-    # 데이터 조회
     query = """
         SELECT talk_id, eng_sentence, kor_sentence, parenthesis, tag, create_at, update_at
         FROM small_talk
@@ -94,6 +95,135 @@ async def get_small_talks(
     }
 
 
+@router.get("/sentence")
+async def get_sentence(
+    current_user=Depends(get_current_user),
+    direction: Direction = Direction.CURRENT,
+    current_talk_id: Optional[int] = None,
+    db: MySQLConnector = Depends(get_db)
+):
+    """사용자별 스몰톡 문장 조회 (현재/이전/다음)"""
+    try:
+        user_id = current_user.user_id
+
+        if direction == Direction.CURRENT:
+            query = """
+                SELECT s.talk_id, s.eng_sentence, s.kor_sentence, s.parenthesis, s.tag,
+                    (SELECT talk_id FROM small_talk WHERE talk_id < s.talk_id ORDER BY talk_id DESC LIMIT 1) as prev_id,
+                    COALESCE(
+                        (SELECT talk_id FROM small_talk WHERE talk_id > s.talk_id ORDER BY talk_id ASC LIMIT 1),
+                        1
+                    ) as next_id
+                FROM small_talk s
+                WHERE s.talk_id = COALESCE(
+                    (SELECT talk_id FROM last_sentence WHERE user_id = %(user_id)s),
+                    (SELECT MIN(talk_id) FROM small_talk)
+                )
+                LIMIT 1
+            """
+            params = {'user_id': user_id}
+        else:
+            if not current_talk_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="current_talk_id is required for prev/next navigation"
+                )
+
+            if direction == Direction.NEXT:
+                query = """
+                    SELECT s.talk_id, s.eng_sentence, s.kor_sentence, s.parenthesis, s.tag,
+                        (SELECT talk_id FROM small_talk WHERE talk_id < s.talk_id ORDER BY talk_id DESC LIMIT 1) as prev_id,
+                        COALESCE(
+                            (SELECT talk_id FROM small_talk WHERE talk_id > s.talk_id ORDER BY talk_id ASC LIMIT 1),
+                            1
+                        ) as next_id
+                    FROM small_talk s
+                    WHERE s.talk_id = CASE
+                        WHEN EXISTS (SELECT 1 FROM small_talk WHERE talk_id > %(current_talk_id)s)
+                        THEN (SELECT MIN(talk_id) FROM small_talk WHERE talk_id > %(current_talk_id)s)
+                        ELSE 1
+                    END
+                """
+            else:
+                query = """
+                    SELECT s.talk_id, s.eng_sentence, s.kor_sentence, s.parenthesis, s.tag,
+                        (SELECT talk_id FROM small_talk WHERE talk_id < s.talk_id ORDER BY talk_id DESC LIMIT 1) as prev_id,
+                        COALESCE(
+                            (SELECT talk_id FROM small_talk WHERE talk_id > s.talk_id ORDER BY talk_id ASC LIMIT 1),
+                            1
+                        ) as next_id
+                    FROM small_talk s
+                    WHERE s.talk_id = (
+                        SELECT MAX(talk_id) 
+                        FROM small_talk 
+                        WHERE talk_id < %(current_talk_id)s
+                    )
+                """
+            params = {'current_talk_id': current_talk_id}
+
+        result = db.execute_raw_query(query, params)
+
+        if not result:
+            # 데이터가 없는 경우 첫 번째 문장 가져오기
+            query = """
+                SELECT s.talk_id, s.eng_sentence, s.kor_sentence, s.parenthesis, s.tag,
+                    NULL as prev_id,
+                    COALESCE(
+                        (SELECT talk_id FROM small_talk WHERE talk_id > s.talk_id ORDER BY talk_id ASC LIMIT 1),
+                        1
+                    ) as next_id
+                FROM small_talk s
+                ORDER BY s.talk_id ASC
+                LIMIT 1
+            """
+            result = db.execute_raw_query(query)
+
+            if not result:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No sentences found in the database"
+                )
+
+        # 히스토리 업데이트
+        upsert_query = """
+            INSERT INTO last_sentence 
+                (user_id, talk_id)
+            VALUES 
+                (%(user_id)s, %(talk_id)s)
+            ON DUPLICATE KEY UPDATE
+                talk_id = VALUES(talk_id)
+        """
+        try:
+            db.execute_raw_query(
+                upsert_query,
+                {'user_id': user_id, 'talk_id': result[0]['talk_id']}
+            )
+        except Exception as e:
+            print(f"Failed to update history: {str(e)}")
+
+        return {
+            "data": {
+                "talk_id": result[0]['talk_id'],
+                "eng_sentence": result[0]['eng_sentence'],
+                "kor_sentence": result[0]['kor_sentence'],
+                "parenthesis": result[0]['parenthesis'],
+                "tag": result[0]['tag']
+            },
+            "navigation": {
+                "has_prev": result[0].get('prev_id') is not None,
+                "has_next": True,
+                "prev_id": result[0].get('prev_id'),
+                "next_id": result[0].get('next_id') or 1
+            }
+        }
+
+    except Exception as e:
+        print(f"Error in get_sentence: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
+
 @router.get("/{talk_id}", response_model=SmallTalk)
 async def get_small_talk(talk_id: int, db: MySQLConnector = Depends(get_db)):
     """스몰톡 상세 조회"""
@@ -105,52 +235,65 @@ async def get_small_talk(talk_id: int, db: MySQLConnector = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Small talk not found")
     return result[0]
 
-
 @router.post("/", response_model=SmallTalk)
 async def create_small_talk(
-        small_talk: SmallTalkCreate,
-        db: MySQLConnector = Depends(get_db)
+    small_talk: SmallTalkCreate,
+    current_user = Depends(get_current_user),
+    db: MySQLConnector = Depends(get_db)
 ):
-    """스몰톡 생성"""
+    """스몰톡 생성 (관리자 권한 필요)"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="관리자 권한이 필요합니다"
+        )
     data = small_talk.dict(exclude_unset=True)
     result = db.insert('small_talk', data)
 
-    # 생성된 데이터 조회
     created = db.execute_raw_query(
         "SELECT * FROM small_talk WHERE talk_id = %(talk_id)s",
         {'talk_id': result['id']}
     )
     return created[0]
 
-
 @router.put("/{talk_id}", response_model=SmallTalk)
 async def update_small_talk(
-        talk_id: int,
-        small_talk: SmallTalkUpdate,
-        db: MySQLConnector = Depends(get_db)
+    talk_id: int,
+    small_talk: SmallTalkUpdate,
+    current_user = Depends(get_current_user),
+    db: MySQLConnector = Depends(get_db)
 ):
-    """스몰톡 전체 수정"""
+    """스몰톡 전체 수정 (관리자 권한 필요)"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="관리자 권한이 필요합니다"
+        )
     data = small_talk.dict(exclude_unset=True)
     result = db.update('small_talk', data, {'talk_id': talk_id})
 
     if result['affected_rows'] == 0:
         raise HTTPException(status_code=404, detail="Small talk not found")
 
-    # 수정된 데이터 조회
     updated = db.execute_raw_query(
         "SELECT * FROM small_talk WHERE talk_id = %(talk_id)s",
         {'talk_id': talk_id}
     )
     return updated[0]
 
-
 @router.patch("/{talk_id}", response_model=SmallTalk)
 async def patch_small_talk(
-        talk_id: int,
-        small_talk: SmallTalkPatch,
-        db: MySQLConnector = Depends(get_db)
+    talk_id: int,
+    small_talk: SmallTalkPatch,
+    current_user = Depends(get_current_user),
+    db: MySQLConnector = Depends(get_db)
 ):
-    """스몰톡 부분 수정"""
+    """스몰톡 부분 수정 (관리자 권한 필요)"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="관리자 권한이 필요합니다"
+        )
     update_data = {
         k: v for k, v in small_talk.dict(exclude_unset=True).items()
         if v is not None
@@ -164,22 +307,25 @@ async def patch_small_talk(
     if result['affected_rows'] == 0:
         raise HTTPException(status_code=404, detail="Small talk not found")
 
-    # 수정된 데이터 조회
     updated = db.execute_raw_query(
         "SELECT * FROM small_talk WHERE talk_id = %(talk_id)s",
         {'talk_id': talk_id}
     )
     return updated[0]
 
-
 @router.delete("/{talk_id}")
 async def delete_small_talk(
-        talk_id: int,
-        db: MySQLConnector = Depends(get_db)
+    talk_id: int,
+    current_user = Depends(get_current_user),
+    db: MySQLConnector = Depends(get_db)
 ):
-    """스몰톡 삭제"""
+    """스몰톡 삭제 (관리자 권한 필요)"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="관리자 권한이 필요합니다"
+        )
     try:
-        # 삭제하기 전에 존재 여부 확인
         exists = db.execute_raw_query(
             "SELECT talk_id FROM small_talk WHERE talk_id = %(talk_id)s",
             {'talk_id': talk_id}
@@ -188,13 +334,11 @@ async def delete_small_talk(
         if not exists:
             raise HTTPException(status_code=404, detail="Small talk not found")
 
-        # answer 테이블의 관련 데이터 삭제
         db.execute_raw_query(
             "DELETE FROM answer WHERE talk_id = %(talk_id)s",
             {'talk_id': talk_id}
         )
 
-        # small_talk 테이블의 데이터 삭제
         result = db.execute_raw_query(
             "DELETE FROM small_talk WHERE talk_id = %(talk_id)s",
             {'talk_id': talk_id}
