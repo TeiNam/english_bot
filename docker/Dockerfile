@@ -36,12 +36,14 @@ RUN useradd -r -s /bin/false -m -u 1000 appuser
 COPY --from=builder /root/.local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 
 # 애플리케이션 소스코드를 분리하여 복사
-COPY --chown=appuser:appuser ./app ./app
-COPY --chown=appuser:appuser ./main.py .
+COPY --chown=appuser:appuser ./apis /app/apis
+COPY --chown=appuser:appuser ./utils /app/utils
+COPY --chown=appuser:appuser ./configs /app/configs
+COPY --chown=appuser:appuser ./middlewares /app/middlewares
+COPY --chown=appuser:appuser ./main.py /app/
 
 # 보안 설정
-RUN chmod -R 550 /app && \
-    chmod -R 550 main.py
+RUN chmod -R 550 /app
 
 USER appuser
 
