@@ -17,6 +17,7 @@ class User(BaseModel):
     email: str
     username: str
     is_active: str = 'Y'
+    is_admin: bool = False
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
@@ -45,8 +46,8 @@ async def verify_token(token: str = Depends(oauth2_scheme)) -> dict:
 
 
 async def get_current_user(
-       token: str = Depends(oauth2_scheme),
-       db: MySQLConnector = Depends(get_db)
+    token: str = Depends(oauth2_scheme),
+    db: MySQLConnector = Depends(get_db)
 ) -> User:
    """현재 사용자 정보 조회"""
    credentials_exception = HTTPException(
@@ -68,12 +69,12 @@ async def get_current_user(
            raise credentials_exception
 
        query = """
-           SELECT user_id, email, username, is_active
-           FROM `user` 
-           WHERE user_id = %(user_id)s 
-           AND email = %(email)s
-           AND is_active = 'Y'
-       """
+                   SELECT user_id, email, username, is_active, is_admin  # is_admin 필드 추가
+                   FROM `user` 
+                   WHERE user_id = %(user_id)s 
+                   AND email = %(email)s
+                   AND is_active = 'Y'
+               """
        result = db.execute_raw_query(query, {"user_id": user_id, "email": email})
 
        if not result:
