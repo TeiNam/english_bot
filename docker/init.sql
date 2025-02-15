@@ -14,7 +14,7 @@ CREATE TABLE `answer` (
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '등록 수정일',
   PRIMARY KEY (`answer_id`),
   KEY `answer_talk_id_IDX` (`talk_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='답변';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='답변';
 
 
 -- eng_base.chat_history definition
@@ -31,7 +31,7 @@ CREATE TABLE `chat_history` (
   KEY `chat_history_conversation_id_IDX` (`conversation_id`),
   KEY `chat_history_user_id_IDX` (`user_id`),
   KEY `chat_history_create_at_IDX` (`create_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='OpenAI 챗봇 대화 이력';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='OpenAI 챗봇 대화 이력';
 
 
 -- eng_base.conversation_session definition
@@ -60,7 +60,7 @@ CREATE TABLE `grammar` (
   `create_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일자',
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일자',
   PRIMARY KEY (`grammar_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='문법';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='문법';
 
 
 -- eng_base.last_sentence definition
@@ -73,7 +73,7 @@ CREATE TABLE `last_sentence` (
   PRIMARY KEY (`sentence_id`),
   UNIQUE KEY `last_sentence_user_id_UIDX` (`user_id`) USING BTREE,
   KEY `last_sentence_user_id_talk_id_IDX` (`user_id`,`talk_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='사용자별 마지막 조회 문장';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='사용자별 마지막 조회 문장';
 
 
 -- eng_base.opic definition
@@ -86,7 +86,7 @@ CREATE TABLE `opic` (
   `create_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일자',
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일자',
   PRIMARY KEY (`opic_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=217 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='오픽 서베이';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='오픽 서베이';
 
 
 -- eng_base.prompt_template definition
@@ -103,7 +103,7 @@ CREATE TABLE `prompt_template` (
   PRIMARY KEY (`prompt_template_id`),
   UNIQUE KEY `prompt_template_name_IDX` (`name`),
   KEY `prompt_template_is_active_IDX` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='프롬프트 템플릿';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='프롬프트 템플릿';
 
 
 -- eng_base.small_talk definition
@@ -122,7 +122,7 @@ CREATE TABLE `small_talk` (
   KEY `small_talk_cycle_number_IDX` (`cycle_number`,`last_sent_at` DESC) USING BTREE,
   KEY `small_talk_create_at_IDX` (`create_at` DESC) USING BTREE,
   FULLTEXT KEY `small_talk_eng_sentence_FTX` (`eng_sentence`,`kor_sentence`,`parenthesis`,`tag`) /*!50100 WITH PARSER `ngram` */
-) ENGINE=InnoDB AUTO_INCREMENT=250 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='스몰토크 문장';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='스몰토크 문장';
 
 
 -- eng_base.`user` definition
@@ -139,7 +139,7 @@ CREATE TABLE `user` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_username_UIDX` (`username`) USING BTREE,
   UNIQUE KEY `user_email_UIDX` (`email`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='유저 테이블';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='유저 테이블';
 
 
 -- eng_base.user_chat_setting definition
@@ -170,7 +170,7 @@ CREATE TABLE `vocabulary` (
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일자',
   PRIMARY KEY (`vocabulary_id`),
   FULLTEXT KEY `vocabulary_word_FTX` (`word`) /*!50100 WITH PARSER `ngram` */
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='뜻이 많은 단어';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='뜻이 많은 단어';
 
 
 -- eng_base.vocabulary_meaning definition
@@ -187,7 +187,7 @@ CREATE TABLE `vocabulary_meaning` (
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일자',
   PRIMARY KEY (`meaning_id`),
   KEY `vocabulary_meaning_vocabulary_id_IDX` (`vocabulary_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='단어 뜻';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='단어 뜻';
 
 
 -- eng_base.diary definition
@@ -201,4 +201,4 @@ CREATE TABLE `diary` (
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일자',
   PRIMARY KEY (`diary_id`),
   UNIQUE KEY `diary_date_IDX` (`date` DESC) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='일기';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='일기';
