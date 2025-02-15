@@ -1,0 +1,21 @@
+@baseUrl = http://localhost:8000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+
+### 1. [채팅 설정] 사용자 설정 조회 (GET)
+GET http://localhost:8000/api/v1/chat/settings
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+
+###
+
+### 2. [채팅 설정] 사용자 설정 수정 (PUT)
+PUT http://localhost:8000/api/v1/chat/settings
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+
+{
+  "default_prompt_template_id": 1,
+  "model": "gpt-4o-mini",
+  "temperature": 0.7,
+  "max_tokens": 1500
+}
