@@ -1,0 +1,87 @@
+# test_chat.http
+
+@baseUrl = http://localhost:8000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+
+### 1. 대화 내역 조회
+GET {{baseUrl}}/api/v1/chat/history
+Authorization: Bearer {{token}}
+
+### 2. 사용자의 대화 목록 조회
+GET {{baseUrl}}/api/v1/chat/conversations
+Authorization: Bearer {{token}}
+
+### 3. 대화 메시지 저장
+POST {{baseUrl}}/api/v1/chat/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "user_message": "What is Python?",
+    "bot_response": "Python is a high-level, interpreted programming language...",
+    "conversation_id": null
+}
+
+### 4. 대화 삭제
+DELETE {{baseUrl}}/api/v1/chat/conversations/123e4567-e89b-12d3-a456-426614174000
+Authorization: Bearer {{token}}
+
+### 5. 스트리밍 채팅
+POST {{baseUrl}}/api/v1/chat/stream
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "content": "Tell me about Python programming language",
+    "conversation_id": null
+}
+
+### 6. 새 대화로 스트리밍 채팅
+POST {{baseUrl}}/api/v1/chat/stream
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "content": "What is FastAPI?",
+    "conversation_id": null
+}
+
+### 7. 기존 대화에 이어서 스트리밍 채팅
+POST {{baseUrl}}/api/v1/chat/stream
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "content": "Can you provide an example?",
+    "conversation_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+
+### 8. 대화 저장 (에러 케이스 - 존재하지 않는 대화)
+POST {{baseUrl}}/api/v1/chat/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "user_message": "Hello",
+    "bot_response": "Hi there!",
+    "conversation_id": "non-existent-id"
+}
+
+### 9. 대화 내역 조회 (에러 케이스 - 권한 없음)
+GET {{baseUrl}}/api/v1/chat/history/someone-elses-conversation-id
+Authorization: Bearer {{token}}
+
+### 10. 스트리밍 채팅 (한글 테스트)
+POST {{baseUrl}}/api/v1/chat/stream
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "content": "파이썬 프로그래밍 언어에 대해 설명해주세요.",
+    "conversation_id": null
+}
+
+### 테스트 실행 전 환경 설정
+# 1. @baseUrl 값을 실제 서버 URL로 변경
+# 2. @token 값을 실제 JWT 토큰으로 변경
+# 3. conversation_id 값들을 실제 존재하는 대화 ID로 변경

@@ -3,6 +3,9 @@ import mysql.connector
 from mysql.connector import Error
 from configs.mysql_setting import MYSQL_CONFIG
 from typing import List, Dict, Any, Optional, Union, Tuple
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MySQLConnector:
@@ -40,8 +43,11 @@ class MySQLConnector:
     def begin_transaction(self):
         """트랜잭션 시작"""
         self.connect()
-        self._connection.start_transaction()
-        self.is_transaction_active = True
+        if not self.is_transaction_active:
+            self._connection.start_transaction()
+            self.is_transaction_active = True
+        else:
+            logger.debug("Transaction already in progress, skipping new transaction")
 
     def commit_transaction(self):
         """트랜잭션 커밋"""
