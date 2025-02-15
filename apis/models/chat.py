@@ -84,3 +84,7 @@ class ChatStreamRequest(BaseModel):
     """스트리밍 채팅 요청 모델"""
     content: str
     conversation_id: Optional[str] = None
+
+class PromptTemplateDeleteResponse(BaseModel):
+    prompt_template_id: int
+    deleted: bool

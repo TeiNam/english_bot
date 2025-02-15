@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 import logging
 from utils.auth import get_current_user, User
-from chat.prompt_manager import PromptManager
+from chat.prompt_manager import PromptManager, PromptException
 from apis.models.chat import (
     PromptTemplateResponse,
     PromptTemplateCreate,
-    PromptTemplateUpdate
+    PromptTemplateUpdate,
+    PromptTemplateDeleteResponse
 )
 from chat.exceptions import DatabaseError
 
@@ -139,4 +140,43 @@ async def update_prompt_template(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while updating prompt template"
+        )
+
+@router.delete("/templates/{template_id}", response_model=PromptTemplateDeleteResponse)
+async def delete_prompt_template(
+    template_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    """프롬프트 템플릿 삭제 (실제 로우 삭제)"""
+    logger.info(f"Deleting prompt template {template_id} by user {current_user.user_id}")
+
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admin users can delete prompt templates"
+        )
+
+    try:
+        manager = get_prompt_manager()
+        # 실제 로우를 삭제하고, 삭제 성공 정보를 반환합니다.
+        deleted_template = manager.delete_template(template_id)
+        return deleted_template
+
+    except PromptException as e:
+        logger.warning(f"Prompt template not found: {template_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except DatabaseError as e:
+        logger.error(f"Database error in delete_prompt_template: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error in delete_prompt_template: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while deleting prompt template"
         )

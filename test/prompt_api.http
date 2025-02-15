@@ -1,0 +1,48 @@
+# test_chat.http
+
+@baseUrl = http://localhost:8000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+
+
+### GET Prompt Templates
+GET http://localhost:8000/api/v1/chat/prompts/templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+Accept: application/json
+
+###
+
+### Create Prompt Template
+POST http://localhost:8000/api/v1/chat/prompts/templates
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Test Prompt Template",
+  "description": "This is a test prompt template",
+  "content": "Your prompt content here."
+}
+
+###
+
+### Get Prompt Template By Id
+GET http://localhost:8000/api/v1/chat/prompts/templates/1
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+Accept: application/json
+
+###
+
+### Update Prompt Template
+PUT http://localhost:8000/api/v1/chat/prompts/templates/1
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Updated Test Prompt Template",
+  "description": "Updated description for test prompt template",
+  "content": "Updated prompt content."
+}
+
+### DELETE Prompt Template
+DELETE http://localhost:8000/api/v1/chat/prompts/templates/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+Accept: application/json
