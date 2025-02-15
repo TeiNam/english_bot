@@ -36,3 +36,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1Ac
 DELETE http://localhost:8000/api/v1/diary/1
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+
+
+### Generate Feedback for Diary (ID: 1)
+POST http://localhost:8000/api/v1/diary/5/feedback HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8

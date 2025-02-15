@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import date
 from apis.models.diary import DiaryCreate, DiaryUpdate, DiaryResponse
+from diary.ai import DiaryAnalyzer
 from diary.diary import DiaryService
 from utils.auth import get_current_user, User
 from utils.error_handler import handle_errors
@@ -124,3 +125,25 @@ async def delete_diary(
        )
 
    return {"message": "Diary deleted successfully"}
+
+
+@router.post("/{diary_id}/feedback", response_model=DiaryResponse)
+@handle_errors
+async def generate_feedback(
+        diary_id: int,
+        current_user: User = Depends(get_current_user)
+):
+    """AI를 사용하여 일기 피드백 생성"""
+    service = DiaryService()
+    diary = service.get_diary(diary_id)
+    if not diary:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Diary not found"
+        )
+
+    analyzer = DiaryAnalyzer()
+    feedback = await analyzer.analyze_diary(diary.body)
+
+    # 피드백 업데이트
+    return service.update_feedback(diary_id, feedback)

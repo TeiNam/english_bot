@@ -118,3 +118,13 @@ class DiaryService:
             logger.error(f"Failed to delete diary: {str(e)}")
             raise
 
+    def update_feedback(self, diary_id: int, feedback: str) -> DiaryResponse:
+        """피드백 업데이트"""
+        try:
+            where = {"diary_id": diary_id}
+            update_data = {"feedback": feedback}
+            self.db.update("diary", update_data, where)
+            return self.get_diary(diary_id)
+        except Exception as e:
+            logger.error(f"Failed to update feedback: {str(e)}")
+            raise
