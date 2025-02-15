@@ -143,32 +143,16 @@ async def delete_conversation(
     try:
         chat_manager = get_chat_manager()
 
-        # 대화 존재 및 권한 확인
-        try:
-            conversation = await loop.run_in_executor(
-                None,
-                chat_manager.get_conversation_info,
-                conversation_id
-            )
-            if conversation['user_id'] != current_user.user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You don't have permission to delete this conversation"
-                )
-        except ConversationNotFound:
+        # 대화 존재 및 권한 확인 (비동기 함수를 직접 await)
+        conversation = await chat_manager.get_conversation_info(conversation_id)
+        if conversation['user_id'] != current_user.user_id:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Conversation not found"
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to delete this conversation"
             )
 
-        # 비동기로 실행
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(
-            None,
-            chat_manager.delete_conversation,
-            conversation_id,
-            current_user.user_id
-        )
+        # 대화 삭제: 비동기 delete_conversation 함수를 await로 호출
+        result = await chat_manager.delete_conversation(conversation_id, current_user.user_id)
         return {"success": result}
 
     except ConversationNotFound as e:

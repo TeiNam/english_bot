@@ -389,14 +389,14 @@ class ChatManager:
         except Exception as e:
             logger.warning(f"캐시 무효화 중 오류 발생: {str(e)}")
 
-    def delete_conversation(self, conversation_id: str, user_id: int) -> bool:
+    async def delete_conversation(self, conversation_id: str, user_id: int) -> bool:
         """대화 삭제"""
         if not conversation_id or not user_id:
             raise ChatBaseException("Conversation ID and User ID are required")
 
         try:
-            # 대화 존재 및 권한 확인
-            conversation = self.get_conversation_info(conversation_id)
+            # 대화 존재 및 권한 확인 (비동기 함수는 await 사용)
+            conversation = await self.get_conversation_info(conversation_id)
             if not conversation or conversation['user_id'] != user_id:
                 raise ConversationNotFound("대화를 찾을 수 없거나 접근 권한이 없습니다.")
 
