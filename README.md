@@ -1,172 +1,186 @@
-# English Learning Bot
+# English Learning Platform
 
-영어 학습을 위한 자동화된 Slack 메시지 발송 시스템입니다. 지정된 시간에 저장된 영어 문장을 Slack 채널로 자동 발송하여 효율적인 영어 학습을 지원합니다.
+영어 학습을 위한 종합 플랫폼으로, Slack을 통한 자동화된 학습 컨텐츠 전송과 AI 기반의 학습 도구를 제공합니다.
 
-## 주요 기능
+## 🌟 주요 기능
 
-### 🤖 자동화된 영어 학습
-- 하루 9번 정해진 시간에 영어 문장 자동 발송
-- 사이클 기반의 문장 반복 학습 시스템
-- 한영 번역과 부가 설명 제공
+### 1. 자동화된 영어 학습 시스템
+- 일일 정해진 시간에 영어 문장 자동 발송 (09:00, 13:00, 17:00, 20:00)
+- 사이클 기반의 반복 학습 시스템으로 효율적인 학습 관리
+- Slack을 통한 실시간 학습 컨텐츠 전달
 
-### 🔄 순환 학습 시스템
-- 모든 문장이 균등하게 학습될 수 있도록 사이클 관리
-- 자동 사이클 리셋 및 진행 상태 추적
+### 2. AI 기반 학습 도구
+- OpenAI GPT 기반의 대화형 학습 보조
+- 영어 일기 작성 및 AI 피드백 시스템
+- 맞춤형 프롬프트 템플릿 관리
 
-### 🛠 관리 시스템
-- RESTful API를 통한 문장 관리
-- 태그 기반 문장 분류
-- 답변 관리 시스템
+### 3. 종합 학습 컨텐츠 관리
+- 단어장 관리 (과거형, 과거분사, 의미, 예문 포함)
+- Small Talk 문장 관리
+- OPic 대비 문제은행
+- 문법 학습 자료 관리
 
-## 기술 스택
+### 4. 사용자 맞춤 시스템
+- 개인화된 학습 설정
+- 학습 이력 추적
+- 대화 기록 관리
 
-- **Backend Framework**: FastAPI
+## 🛠 기술 스택
+
+### Backend
+- **Framework**: FastAPI
 - **Language**: Python 3.12
+- **AI Integration**: OpenAI GPT API
 - **Database**: MySQL 8.0
-- **Message Platform**: Slack
+- **Cache**: Redis
+- **Message Platform**: Slack SDK
+
+### Infrastructure
 - **Containerization**: Docker, Docker Compose
-- **Scheduler**: APScheduler
+- **Task Scheduling**: APScheduler
+- **Authentication**: JWT
+- **API Documentation**: OpenAPI (Swagger)
 
-## 시스템 요구사항
+## 🚀 시작하기
 
+### 1. 사전 요구사항
 - Python 3.12 이상
 - Docker 및 Docker Compose
 - MySQL 8.0
+- Redis (선택사항)
 - Slack Workspace 및 Bot Token
+- OpenAI API Key
 
-## 설치 방법
-
-1. 저장소 클론
+### 2. 환경 설정
 ```bash
+# 저장소 클론
 git clone [repository-url]
-cd english_bot
-```
+cd english-bot
 
-2. 환경 변수 설정
-```bash
+# 환경 변수 설정
 cp .env.example .env
-# .env 파일을 편집하여 필요한 설정 값을 입력
+# .env 파일을 편집하여 필요한 설정값 입력
 ```
 
-3. Docker Compose로 실행
+### 3. 실행 방법
 ```bash
+# Docker Compose로 실행
 docker-compose up -d
+
+# 로컬 개발 환경 실행
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-## 환경 변수 설정
-
-`.env` 파일에 다음 환경 변수들을 설정해야 합니다:
+## 📝 필수 환경 변수
 
 ```env
 # MySQL 설정
-MYSQL_ROOT_PASSWORD=your_root_password
-MYSQL_DATABASE=eng_base
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
 MYSQL_USER=your_user
 MYSQL_PASSWORD=your_password
+MYSQL_DATABASE=eng_base
 
 # Slack 설정
 SLACK_BOT_TOKEN=xoxb-your-bot-token
 SLACK_CHANNEL_ID=your-channel-id
+
+# OpenAI 설정
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL_NAME=gpt-4
+OPENAI_TEMPERATURE=0.7
+OPENAI_MAX_TOKENS=2000
+
+# JWT 설정
+JWT_SECRET_KEY=your-secret-key
+
+# Redis 설정 (선택사항)
+REDIS_URL=redis://localhost:6379
+REDIS_TTL=3600
 ```
 
-## API 엔드포인트
+## 🏗 프로젝트 구조
 
-### 영어 문장 관리
-
-#### 문장 조회
-- `GET /small-talk/`: 영어 문장 목록 조회
-- `GET /small-talk/{talk_id}`: 특정 문장 상세 조회
-- `GET /small-talk/count`: 전체 문장 수 조회
-
-#### 문장 관리
-- `POST /small-talk/`: 새로운 문장 추가
-- `PUT /small-talk/{talk_id}`: 문장 전체 수정
-- `PATCH /small-talk/{talk_id}`: 문장 부분 수정
-- `DELETE /small-talk/{talk_id}`: 문장 삭제
-
-### 답변 관리
-- `GET /answer/`: 답변 목록 조회
-- `POST /answer/`: 새로운 답변 추가
-- `PUT /answer/{answer_id}`: 답변 수정
-- `DELETE /answer/{answer_id}`: 답변 삭제
-
-## 메시지 발송 시간
-
-매일 다음 시간에 메시지가 자동 발송됩니다:
-- 08:30
-- 10:00
-- 11:30
-- 13:00
-- 14:30
-- 16:00
-- 17:30
-- 19:00
-- 20:30
-
-## 데이터베이스 스키마
-
-### small_talk 테이블
-- `talk_id`: 문장 ID (PK)
-- `eng_sentence`: 영어 문장
-- `kor_sentence`: 한국어 번역
-- `parenthesis`: 부가 설명
-- `tag`: 태그
-- `cycle_number`: 사이클 번호
-- `last_sent_at`: 마지막 발송 시간
-- `update_at`: 수정 시간
-
-### answer 테이블
-- `answer_id`: 답변 ID (PK)
-- `talk_id`: 문장 ID (FK)
-- `eng_sentence`: 영어 답변
-- `kor_sentence`: 한국어 답변
-- `update_at`: 수정 시간
-
-## 개발 환경 설정
-
-### 로컬 개발 환경
-```bash
-# 가상환경 생성 및 활성화
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 의존성 설치
-pip install -r requirements.txt
-
-# 개발 서버 실행
-uvicorn main:app --reload
+```
+english-bot/
+├── apis/               # API 엔드포인트 및 모델
+│   ├── models/        # Pydantic 모델
+│   └── routes/        # API 라우트
+├── bots/              # 봇 구현
+├── chat/              # 채팅 관련 기능
+├── configs/           # 설정 파일
+├── diary/             # 일기 관련 기능
+├── docker/            # Docker 설정
+├── middlewares/       # 미들웨어
+├── utils/             # 유틸리티 기능
+└── test/              # 테스트 파일
 ```
 
-### Docker 개발 환경
-```bash
-# 개발용 컨테이너 실행
-docker-compose up --build
+## 🔐 보안 기능
 
-# 로그 확인
-docker-compose logs -f
+- JWT 기반 인증
+- CORS 보호
+- 비밀번호 해싱 (PBKDF2)
+- 환경 변수 기반 설정
+- 관리자 권한 시스템
 
-# 컨테이너 중지
-docker-compose down
-```
+## 📚 주요 API 엔드포인트
 
-## 상태 확인
+### 학습 컨텐츠
+- `/api/v1/vocabulary`: 단어 관리
+- `/api/v1/small-talk`: Small Talk 관리
+- `/api/v1/grammar`: 문법 관리
+- `/api/v1/opic`: OPic 문제 관리
+- `/api/v1/diary`: 영어 일기 관리
 
-- API 상태 확인: `GET /health`
-- 스케줄러 상태 확인: `GET /bot/status`
+### AI 기능
+- `/api/v1/chat`: AI 채팅
+- `/api/v1/chat/prompts`: 프롬프트 템플릿 관리
+- `/api/v1/diary/{diary_id}/feedback`: AI 일기 피드백
 
-## 로깅
+### 시스템 관리
+- `/api/v1/bot`: 봇 제어
+- `/api/v1/auth`: 인증
+- `/health`: 상태 확인
 
-로그는 다음 경로에 저장됩니다:
-- API 로그: `logs/api.log`
-- 봇 로그: `logs/bot.log`
-- 스케줄러 로그: `logs/scheduler.log`
+## 💾 데이터베이스 구조
 
-## 참고사항
+주요 테이블:
+- `vocabulary`: 단어 정보
+- `vocabulary_meaning`: 단어 의미
+- `small_talk`: Small Talk 문장
+- `answer`: 답변
+- `grammar`: 문법
+- `opic`: OPic 문제
+- `diary`: 영어 일기
+- `chat_history`: 채팅 기록
+- `prompt_template`: 프롬프트 템플릿
 
-- 모든 시간은 Asia/Seoul 타임존 기준입니다.
-- 문장 발송은 사이클 방식으로 진행되며, 모든 문장이 한 번씩 발송된 후 새로운 사이클이 시작됩니다.
-- 환경 변수 설정이 올바르지 않으면 서비스가 정상적으로 동작하지 않을 수 있습니다.
+## 🔄 사이클 시스템
 
-## 라이선스
+1. 모든 학습 컨텐츠는 사이클 기반으로 관리
+2. 한 사이클에서 모든 컨텐츠가 한 번씩 노출
+3. 사이클 완료 후 자동으로 새로운 사이클 시작
+4. 각 컨텐츠의 노출 이력 추적
 
-이 프로젝트는 MIT 라이선스 하에 있습니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+## 📊 모니터링
+
+- API 상태: `/health` 엔드포인트
+- 봇 상태: `/api/v1/bot/bot-status`
+- 스케줄러 상태: 로그 및 API를 통한 모니터링
+- 상세 로깅: 각 구성 요소별 로그 기록
+
+## 🤝 기여하기
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📜 라이선스
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
