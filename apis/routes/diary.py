@@ -78,29 +78,48 @@ async def get_diary(
        )
    return diary
 
+
 @router.put("/{diary_id}", response_model=DiaryResponse)
 @handle_errors
 async def update_diary(
-   diary_id: int,
-   diary: DiaryUpdate,
-   current_user: User = Depends(get_current_user)
+        diary_id: int,
+        diary: DiaryUpdate,
+        current_user: User = Depends(get_current_user)
 ):
-   """일기 수정"""
-   service = DiaryService()
-   existing = service.get_diary(diary_id)
-   if not existing:
-       raise HTTPException(
-           status_code=status.HTTP_404_NOT_FOUND,
-           detail="Diary not found"
-       )
+    service = DiaryService()
+    existing = service.get_diary(diary_id)
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Diary not found"
+        )
 
-   update_data = {
-       "body": diary.body
-   }
-   if diary.feedback is not None:
-       update_data["feedback"] = diary.feedback
+    update_data = {
+        "body": diary.body
+    }
 
-   return service.update_diary(diary_id, update_data)
+    if diary.date is not None:
+        try:
+            # 문자열을 date 객체로 변환
+            date_obj = date.fromisoformat(diary.date)
+            # 중복 체크
+            existing_diary = service.get_diary_by_date(date_obj)
+            if existing_diary and existing_diary.diary_id != diary_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="A diary for this date already exists"
+                )
+            update_data["date"] = date_obj
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid date format. Use YYYY-MM-DD"
+            )
+
+    if diary.feedback is not None:
+        update_data["feedback"] = diary.feedback
+
+    return service.update_diary(diary_id, update_data)
 
 @router.delete("/{diary_id}")
 @handle_errors

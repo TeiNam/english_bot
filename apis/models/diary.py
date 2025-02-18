@@ -36,6 +36,7 @@ class DiaryCreate(BaseModel):
 
 class DiaryUpdate(BaseModel):
     body: str
+    date: Optional[str] = None  # date -> str로 타입 변경
     feedback: Optional[str] = None
 
     @field_validator('body')
