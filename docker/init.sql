@@ -141,6 +141,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `user_email_UIDX` (`email`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='유저 테이블';
 
+INSERT INTO `user` (username, password, email, is_active, is_admin) VALUES('admin', '$pbkdf2-sha256$29000$yZlzbm3N2fvfW8tZ611rDQ$qXtiZPr/XBpR6TXRGqTpyFStnFpN0J/naB47DAsPvIU', 'admin', 'Y', 'Y');
 
 -- eng_base.user_chat_setting definition
 

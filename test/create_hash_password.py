@@ -5,7 +5,7 @@ from utils.password import hash_password
 def create_test_hash():
     """테스트용 해시 패스워드 생성"""
     passwords = [
-        "sample"
+        "admin"
     ]
 
     print("\n=== 패스워드 해시 결과 ===")
