@@ -20,7 +20,7 @@ class User(BaseModel):
     is_admin: bool = False
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
     """액세스 토큰 생성"""
     to_encode = data.copy()
     if expires_delta:
