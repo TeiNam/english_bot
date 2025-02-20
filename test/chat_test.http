@@ -1,10 +1,10 @@
 # test_chat.http
 
 @baseUrl = http://localhost:8000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzM5Njg4NDA2fQ.3v7b4nqFx8cVnegkLoNJmx0HPcRS12-TwOzKVgrIHS8
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZWluYW1AcmFzdGFsaW9uLm1lIiwidXNlcl9pZCI6MSwiZXhwIjoxNzQwMTM3OTAyfQ.uetNr2W21Pb_OT9QbHr-_6x1ZGWjZx08tSrXszgeiZo
 
 ### 1. 대화 내역 조회
-GET {{baseUrl}}/api/v1/chat/history
+GET {{baseUrl}}/api/v1/chat/history -
 Authorization: Bearer {{token}}
 
 ### 2. 사용자의 대화 목록 조회
@@ -12,7 +12,7 @@ GET {{baseUrl}}/api/v1/chat/conversations
 Authorization: Bearer {{token}}
 
 ### 3. 대화 메시지 저장
-POST {{baseUrl}}/api/v1/chat/messages
+POST {{baseUrl}}/api/v1/chat/messages -
 Authorization: Bearer {{token}}
 Content-Type: application/json
 

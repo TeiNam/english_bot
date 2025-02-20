@@ -24,30 +24,35 @@ async def get_answers(
     """
     return db.execute_raw_query(query, {'talk_id': talk_id})
 
-@router.get("/{talk_id}/count", response_model=dict)
-async def get_answers_count(
-        talk_id: int,
+
+@router.get("/counts/{talk_ids}", response_model=List[dict])
+async def get_answers_counts(
+        talk_ids: str,
         db: MySQLConnector = Depends(get_db)
 ):
-    """답변 개수 조회"""
+    """현재 페이지의 답변 개수 일괄 조회"""
+    id_list = [int(id.strip()) for id in talk_ids.split(',') if id.strip()]
+
     query = """
         SELECT 
             talk_id,
             COUNT(*) as answer_count
         FROM answer
-        WHERE talk_id = %(talk_id)s
+        WHERE talk_id IN %(talk_ids)s
         GROUP BY talk_id
     """
-    result = db.execute_raw_query(query, {'talk_id': talk_id})
-    if not result:
-        return {
+
+    results = db.execute_raw_query(query, {'talk_ids': tuple(id_list)})
+
+    # 결과를 딕셔너리로 변환하고 요청된 모든 talk_id에 대해 개수 반환
+    counts = {row['talk_id']: row['answer_count'] for row in results}
+    return [
+        {
             "talk_id": talk_id,
-            "answer_count": 0
+            "answer_count": counts.get(talk_id, 0)
         }
-    return {
-        "talk_id": result[0]['talk_id'],
-        "answer_count": result[0]['answer_count']
-    }
+        for talk_id in id_list
+    ]
 
 # 생성/수정/삭제는 인증 필요
 @router.post("/", response_model=Answer)
