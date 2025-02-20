@@ -1,11 +1,13 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
-from functools import lru_cache
 import os
+from functools import lru_cache
+from typing import Optional
+
 from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 환경변수 로드
 load_dotenv()
+
 
 class OpenAISettings(BaseSettings):
     # Required OpenAI settings
@@ -29,6 +31,7 @@ class OpenAISettings(BaseSettings):
         if not self.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY must be set in environment variables")
         return self
+
 
 @lru_cache()
 def get_openai_settings() -> OpenAISettings:

@@ -1,8 +1,10 @@
 import asyncio
-from openai import AsyncOpenAI
-import redis
-from configs.openai_setting import get_openai_settings
 import logging
+
+import redis
+from openai import AsyncOpenAI
+
+from configs.openai_setting import get_openai_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

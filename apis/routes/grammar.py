@@ -1,7 +1,8 @@
-#apis/routrs/grammar.py
+# apis/routrs/grammar.py
 from fastapi import APIRouter, Depends, HTTPException, Query
-from apis.models.grammar import Grammar, GrammarCreate, GrammarUpdate, GrammarResponse
+
 from apis.deps import get_db
+from apis.models.grammar import Grammar, GrammarCreate, GrammarUpdate, GrammarResponse
 from utils.mysql_connector import MySQLConnector
 
 router = APIRouter(prefix="/api/v1/grammar", tags=["grammar"])

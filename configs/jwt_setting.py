@@ -1,7 +1,8 @@
 # configs/jwt_setting.py
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # 프로젝트 루트 디렉토리 찾기
 BASE_DIR = Path(__file__).resolve().parent.parent

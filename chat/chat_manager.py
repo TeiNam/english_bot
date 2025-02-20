@@ -1,17 +1,19 @@
 # chat/chat_manager.py
-from typing import Dict, List, Optional
-from datetime import datetime
 import logging
-from utils.mysql_connector import MySQLConnector
-from utils.cache_manager import CacheManager
+from datetime import datetime
+from typing import Dict, List, Optional
+
+from chat.constants import CACHE_KEYS, DB_TABLES, CACHE_TTL, MAX_HISTORY_PER_CONV, MAX_CONVERSATIONS
 from chat.exceptions import (
     ChatBaseException,
     DatabaseError,
     ConversationNotFound
 )
-from chat.constants import CACHE_KEYS, DB_TABLES, CACHE_TTL, MAX_HISTORY_PER_CONV, MAX_CONVERSATIONS
+from utils.cache_manager import CacheManager
+from utils.mysql_connector import MySQLConnector
 
 logger = logging.getLogger(__name__)
+
 
 class ChatManager:
     def __init__(self):

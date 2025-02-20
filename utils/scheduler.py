@@ -1,9 +1,11 @@
-#utils/scheduler.py
+# utils/scheduler.py
 import logging
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from utils.time_utils import KST, get_current_kst, format_kst
+
 from bots.english_bot import english_bot
+from utils.time_utils import KST, get_current_kst, format_kst
 
 logger = logging.getLogger(__name__)
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
@@ -13,7 +15,7 @@ class MessageScheduler:
     _instance = None
 
     # 메시지 전송 시간 일정
-    SCHEDULE_TIMES = ['09:00', '13:00', '17:00', '20:00' ]
+    SCHEDULE_TIMES = ['09:00', '13:00', '17:00', '20:00']
 
     def __new__(cls):
         if cls._instance is None:

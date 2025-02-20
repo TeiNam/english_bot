@@ -1,12 +1,14 @@
 # chat/prompt_manager.py
-from typing import List, Dict, Optional
 import logging
-from utils.mysql_connector import MySQLConnector
-from utils.cache_manager import CacheManager
-from chat.exceptions import DatabaseError, PromptTemplateError
+from typing import List, Dict, Optional
+
 from chat.constants import CACHE_KEYS, DB_TABLES, CACHE_TTL
+from chat.exceptions import DatabaseError, PromptTemplateError
+from utils.cache_manager import CacheManager
+from utils.mysql_connector import MySQLConnector
 
 logger = logging.getLogger(__name__)
+
 
 class PromptManager:
     def __init__(self):
@@ -218,6 +220,7 @@ class PromptManager:
                 self.cache.delete(CACHE_KEYS["prompt_template"].format(template_id=template_id))
         except Exception as e:
             logger.warning(f"캐시 무효화 중 오류 발생: {str(e)}")
+
 
 # 외부 모듈에서 PromptException을 참조할 수 있도록 별칭 제공
 PromptException = PromptTemplateError

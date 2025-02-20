@@ -17,9 +17,9 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "user_message": "What is Python?",
-    "bot_response": "Python is a high-level, interpreted programming language...",
-    "conversation_id": null
+  "user_message": "What is Python?",
+  "bot_response": "Python is a high-level, interpreted programming language...",
+  "conversation_id": null
 }
 
 ### 4. 대화 삭제
@@ -32,8 +32,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "content": "Tell me about Python programming language",
-    "conversation_id": null
+  "content": "Tell me about Python programming language",
+  "conversation_id": null
 }
 
 ### 6. 새 대화로 스트리밍 채팅
@@ -42,8 +42,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "content": "What is FastAPI?",
-    "conversation_id": null
+  "content": "What is FastAPI?",
+  "conversation_id": null
 }
 
 ### 7. 기존 대화에 이어서 스트리밍 채팅
@@ -52,8 +52,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "content": "Can you provide an example?",
-    "conversation_id": "123e4567-e89b-12d3-a456-426614174000"
+  "content": "Can you provide an example?",
+  "conversation_id": "123e4567-e89b-12d3-a456-426614174000"
 }
 
 ### 8. 대화 저장 (에러 케이스 - 존재하지 않는 대화)
@@ -62,9 +62,9 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "user_message": "Hello",
-    "bot_response": "Hi there!",
-    "conversation_id": "non-existent-id"
+  "user_message": "Hello",
+  "bot_response": "Hi there!",
+  "conversation_id": "non-existent-id"
 }
 
 ### 9. 대화 내역 조회 (에러 케이스 - 권한 없음)
@@ -77,8 +77,8 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "content": "파이썬 프로그래밍 언어에 대해 설명해주세요.",
-    "conversation_id": null
+  "content": "파이썬 프로그래밍 언어에 대해 설명해주세요.",
+  "conversation_id": null
 }
 
 ### 테스트 실행 전 환경 설정

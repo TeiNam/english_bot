@@ -1,5 +1,6 @@
 # diary/ai.py
 from typing import Optional
+
 from bots.openai_bot import OpenAIBot
 
 

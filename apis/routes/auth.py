@@ -1,9 +1,11 @@
 # apis/routes/auth.py
-from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
-from utils.auth import create_access_token
-from apis.models.auth_service import AuthService
 from datetime import timedelta
+
+from fastapi import APIRouter, HTTPException, status, Depends
+from pydantic import BaseModel, EmailStr
+
+from apis.models.auth_service import AuthService
+from utils.auth import create_access_token, get_current_user
 
 router = APIRouter(prefix="/api/v1/auth", tags=["인증"])
 
@@ -56,3 +58,28 @@ async def login(user_data: UserLogin):
             "email": user.email
         }
     }
+
+
+@router.post("/refresh", response_model=dict)
+async def refresh_token(current_user=Depends(get_current_user)):
+    """토큰 갱신 API"""
+    try:
+        new_access_token = create_access_token(
+            data={"sub": current_user.email, "user_id": current_user.user_id},
+            expires_delta=timedelta(minutes=1440)  # 24시간
+        )
+
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer",
+            "user": {
+                "user_id": current_user.user_id,
+                "username": current_user.username,
+                "email": current_user.email
+            }
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="토큰 갱신에 실패했습니다."
+        )

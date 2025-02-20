@@ -1,10 +1,12 @@
 # apis/routes/answer.py
-from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List
-from ..models.answer import Answer, AnswerCreate, AnswerUpdate
-from utils.mysql_connector import MySQLConnector
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
 from utils.auth import get_current_user
+from utils.mysql_connector import MySQLConnector
 from ..deps import get_db
+from ..models.answer import Answer, AnswerCreate, AnswerUpdate
 
 router = APIRouter(prefix="/api/v1/answers", tags=["answers"])
 

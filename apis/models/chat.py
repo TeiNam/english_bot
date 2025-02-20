@@ -1,7 +1,9 @@
 # apis/models/chat.py
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
 
 # Chat Settings Models
 class ChatSettingRequest(BaseModel):
@@ -9,6 +11,7 @@ class ChatSettingRequest(BaseModel):
     model: str = Field(default="gpt-4o-mini", pattern="^(gpt-4o-mini|gpt-4o)$")
     temperature: float = Field(default=0.7, ge=0.0, le=1.0)
     max_tokens: int = Field(default=1000, ge=1, le=4000)
+
 
 class ChatSettingResponse(BaseModel):
     user_id: int
@@ -21,6 +24,7 @@ class ChatSettingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 # Prompt Template Models
 class PromptTemplateResponse(BaseModel):
@@ -36,6 +40,7 @@ class PromptTemplateResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class PromptTemplateCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -43,12 +48,14 @@ class PromptTemplateCreate(BaseModel):
     user_prompt: str
     is_active: str = "Y"
 
+
 class PromptTemplateUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     system_prompt: Optional[str] = None
     user_prompt: Optional[str] = None
     is_active: Optional[str] = None
+
 
 # Chat History Models
 class ChatHistoryResponse(BaseModel):
@@ -61,6 +68,7 @@ class ChatHistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class ConversationResponse(BaseModel):
     conversation_id: str
@@ -75,15 +83,18 @@ class ConversationResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class SaveMessageRequest(BaseModel):
     user_message: str
     bot_response: str
     conversation_id: Optional[str] = None
 
+
 class ChatStreamRequest(BaseModel):
     """스트리밍 채팅 요청 모델"""
     content: str
     conversation_id: Optional[str] = None
+
 
 class PromptTemplateDeleteResponse(BaseModel):
     prompt_template_id: int

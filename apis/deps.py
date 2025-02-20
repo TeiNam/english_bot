@@ -1,7 +1,9 @@
 # apis/deps.py
 from typing import Generator
-from utils.mysql_connector import MySQLConnector
+
 from bots.english_bot import english_bot
+from utils.mysql_connector import MySQLConnector
+
 
 def get_db() -> Generator:
     db = MySQLConnector()
@@ -9,6 +11,7 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
+
 
 def get_bot() -> english_bot:
     return english_bot

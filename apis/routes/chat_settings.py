@@ -1,25 +1,27 @@
 # apis/routes/chat_settings.py
-from fastapi import APIRouter, Depends, HTTPException, status
 import logging
-from utils.auth import get_current_user, User
-from chat.exceptions import (
-    ChatBaseException,
-    DatabaseError,
-    UserSettingsError
-)
-from chat.chat_settings import ChatSettingsManager
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from apis.models.chat import ChatSettingRequest, ChatSettingResponse
+from chat.chat_settings import ChatSettingsManager
+from chat.exceptions import (
+    DatabaseError
+)
+from utils.auth import get_current_user, User
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/chat/settings", tags=["chat"])
 
+
 def get_settings_manager():
     return ChatSettingsManager()
 
+
 @router.get("", response_model=ChatSettingResponse)
 async def get_chat_settings(
-    current_user: User = Depends(get_current_user)
+        current_user: User = Depends(get_current_user)
 ):
     """사용자의 챗봇 설정 조회"""
     logger.info(f"Fetching chat settings for user {current_user.user_id}")
@@ -54,10 +56,11 @@ async def get_chat_settings(
             detail="An unexpected error occurred while fetching chat settings"
         )
 
+
 @router.put("", response_model=ChatSettingResponse)
 async def update_chat_settings(
-    settings: ChatSettingRequest,
-    current_user: User = Depends(get_current_user)
+        settings: ChatSettingRequest,
+        current_user: User = Depends(get_current_user)
 ):
     """사용자의 챗봇 설정 수정"""
     logger.info(f"Updating chat settings for user {current_user.user_id}")

@@ -1,6 +1,7 @@
 # middlewares/json_handler.py
-from fastapi import Request
 import json
+
+from fastapi import Request
 
 
 async def raw_json_middleware(request: Request, call_next):

@@ -1,9 +1,11 @@
 # apis/routes/vocabulary.py
+from typing import List, Dict
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import List, Optional, Dict
 from pydantic import BaseModel
-from apis.models.vocabulary import VocabularyCreate, VocabularyUpdate, Vocabulary
+
 from apis.deps import get_db
+from apis.models.vocabulary import VocabularyCreate, VocabularyUpdate, Vocabulary
 from utils.mysql_connector import MySQLConnector
 
 router = APIRouter(prefix="/api/v1/vocabulary", tags=["vocabulary"])
@@ -19,12 +21,13 @@ class PaginatedVocabulary(BaseModel):
     has_next: bool
     has_prev: bool
 
+
 @router.get("/text-search", response_model=PaginatedVocabulary)
 async def search_vocabularies(
-    q: str = Query(..., description="검색어"),
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=10, le=100),
-    db: MySQLConnector = Depends(get_db)
+        q: str = Query(..., description="검색어"),
+        page: int = Query(default=1, ge=1),
+        size: int = Query(default=10, le=100),
+        db: MySQLConnector = Depends(get_db)
 ):
     """단어 전문 검색 (영어 단어)"""
     try:
@@ -166,8 +169,8 @@ async def get_vocabulary(vocabulary_id: int, db: MySQLConnector = Depends(get_db
 
 @router.post("/", response_model=Vocabulary)
 async def create_vocabulary(
-    vocabulary: VocabularyCreate,
-    db: MySQLConnector = Depends(get_db)
+        vocabulary: VocabularyCreate,
+        db: MySQLConnector = Depends(get_db)
 ):
     """단어 생성"""
     try:
@@ -189,7 +192,7 @@ async def create_vocabulary(
                 'vocabulary_id': vocabulary_id,
                 'meaning': meaning.meaning,
                 'classes': meaning.classes or "기타",  # 기본값 처리
-                'example': meaning.example or "예문 없음.",     # 기본값 처리
+                'example': meaning.example or "예문 없음.",  # 기본값 처리
                 'parenthesis': meaning.parenthesis,
                 'order_no': idx
             }
@@ -340,6 +343,7 @@ async def get_vocabulary_meaning_counts_by_ids(
             detail=f"의미 개수 조회 실패: {str(e)}"
         )
 
+
 def _group_vocabulary_results(results: List[Dict]) -> List[Dict]:
     """쿼리 결과를 단어별로 그룹화"""
     vocabularies = {}
@@ -367,8 +371,8 @@ def _group_vocabulary_results(results: List[Dict]) -> List[Dict]:
                 'example': row['example'],
                 'parenthesis': row['parenthesis'],
                 'order_no': row['order_no'],
-                'create_at': row['meaning_create_at'],    # 변경된 이름 사용
-                'update_at': row['meaning_update_at']     # 변경된 이름 사용
+                'create_at': row['meaning_create_at'],  # 변경된 이름 사용
+                'update_at': row['meaning_update_at']  # 변경된 이름 사용
             })
 
     return list(vocabularies.values())

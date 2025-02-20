@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import date, datetime
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class DiaryCreate(BaseModel):
@@ -34,6 +35,7 @@ class DiaryCreate(BaseModel):
         }
     )
 
+
 class DiaryUpdate(BaseModel):
     body: str
     date: Optional[str] = None  # date -> str로 타입 변경
@@ -45,6 +47,7 @@ class DiaryUpdate(BaseModel):
         if not v.strip():
             raise ValueError('body must not be empty')
         return v.strip()
+
 
 class DiaryResponse(BaseModel):
     diary_id: int

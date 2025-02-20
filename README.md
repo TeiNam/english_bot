@@ -5,22 +5,26 @@
 ## 🌟 주요 기능
 
 ### 1. 자동화된 영어 학습 시스템
+
 - 일일 정해진 시간에 영어 문장 자동 발송 (09:00, 13:00, 17:00, 20:00)
 - 사이클 기반의 반복 학습 시스템으로 효율적인 학습 관리
 - Slack을 통한 실시간 학습 컨텐츠 전달
 
 ### 2. AI 기반 학습 도구
+
 - OpenAI GPT 기반의 대화형 학습 보조
 - 영어 일기 작성 및 AI 피드백 시스템
 - 맞춤형 프롬프트 템플릿 관리
 
 ### 3. 종합 학습 컨텐츠 관리
+
 - 단어장 관리 (과거형, 과거분사, 의미, 예문 포함)
 - Small Talk 문장 관리
 - OPic 대비 문제은행
 - 문법 학습 자료 관리
 
 ### 4. 사용자 맞춤 시스템
+
 - 개인화된 학습 설정
 - 학습 이력 추적
 - 대화 기록 관리
@@ -28,6 +32,7 @@
 ## 🛠 기술 스택
 
 ### Backend
+
 - **Framework**: FastAPI
 - **Language**: Python 3.12
 - **AI Integration**: OpenAI GPT API
@@ -36,6 +41,7 @@
 - **Message Platform**: Slack SDK
 
 ### Infrastructure
+
 - **Containerization**: Docker, Docker Compose
 - **Task Scheduling**: APScheduler
 - **Authentication**: JWT
@@ -44,6 +50,7 @@
 ## 🚀 시작하기
 
 ### 1. 사전 요구사항
+
 - Python 3.12 이상
 - Docker 및 Docker Compose
 - MySQL 8.0
@@ -52,6 +59,7 @@
 - OpenAI API Key
 
 ### 2. 환경 설정
+
 ```bash
 # 저장소 클론
 git clone [repository-url]
@@ -63,6 +71,7 @@ cp .env.example .env
 ```
 
 ### 3. 실행 방법
+
 ```bash
 # Docker Compose로 실행
 docker-compose up -d
@@ -130,6 +139,7 @@ english-bot/
 ## 📚 주요 API 엔드포인트
 
 ### 학습 컨텐츠
+
 - `/api/v1/vocabulary`: 단어 관리
 - `/api/v1/small-talk`: Small Talk 관리
 - `/api/v1/grammar`: 문법 관리
@@ -137,11 +147,13 @@ english-bot/
 - `/api/v1/diary`: 영어 일기 관리
 
 ### AI 기능
+
 - `/api/v1/chat`: AI 채팅
 - `/api/v1/chat/prompts`: 프롬프트 템플릿 관리
 - `/api/v1/diary/{diary_id}/feedback`: AI 일기 피드백
 
 ### 시스템 관리
+
 - `/api/v1/bot`: 봇 제어
 - `/api/v1/auth`: 인증
 - `/health`: 상태 확인
@@ -149,6 +161,7 @@ english-bot/
 ## 💾 데이터베이스 구조
 
 주요 테이블:
+
 - `vocabulary`: 단어 정보
 - `vocabulary_meaning`: 단어 의미
 - `small_talk`: Small Talk 문장

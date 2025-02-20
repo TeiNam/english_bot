@@ -1,9 +1,11 @@
 # modules/mysql_connector.py
+import logging
+from typing import List, Dict, Optional, Union
+
 import mysql.connector
 from mysql.connector import Error
+
 from configs.mysql_setting import MYSQL_CONFIG
-from typing import List, Dict, Any, Optional, Union, Tuple
-import logging
 
 logger = logging.getLogger(__name__)
 

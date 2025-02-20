@@ -1,9 +1,10 @@
 # chat/small_talk_manager.py
-from typing import List, Dict
 import logging
-from utils.mysql_connector import MySQLConnector
+from typing import List, Dict
+
+from chat.constants import DB_TABLES, MAX_SIMILAR_EXPRESSIONS
 from chat.exceptions import DatabaseError, SmallTalkError
-from chat.constants import CACHE_KEYS, DB_TABLES, MAX_SIMILAR_EXPRESSIONS
+from utils.mysql_connector import MySQLConnector
 
 logger = logging.getLogger(__name__)
 

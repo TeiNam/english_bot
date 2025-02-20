@@ -1,16 +1,19 @@
 # apis/routes/small_talk.py
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import List, Optional, Dict, Union
-from pydantic import BaseModel
 from enum import Enum
+from typing import List, Optional, Dict
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+
+from utils.auth import get_current_user
+from utils.mysql_connector import MySQLConnector
+from ..deps import get_db
 from ..models.small_talk import (
     SmallTalk, SmallTalkCreate, SmallTalkUpdate, SmallTalkPatch
 )
-from utils.mysql_connector import MySQLConnector
-from utils.auth import get_current_user
-from ..deps import get_db
 
 router = APIRouter(prefix="/api/v1/small-talk", tags=["small-talk"])
+
 
 class PaginatedSmallTalk(BaseModel):
     items: List[SmallTalk]
@@ -21,15 +24,17 @@ class PaginatedSmallTalk(BaseModel):
     has_next: bool
     has_prev: bool
 
+
 class Direction(str, Enum):
     CURRENT = "current"
     PREV = "prev"
     NEXT = "next"
 
+
 @router.get("/count", response_model=Dict[str, int])
 async def get_small_talks_count(
-    tag: Optional[str] = None,
-    db: MySQLConnector = Depends(get_db)
+        tag: Optional[str] = None,
+        db: MySQLConnector = Depends(get_db)
 ) -> Dict[str, int]:
     """스몰톡 전체 개수 조회"""
     try:
@@ -48,12 +53,13 @@ async def get_small_talks_count(
             detail=f"Failed to get count: {str(e)}"
         )
 
+
 @router.get("/", response_model=PaginatedSmallTalk)
 async def get_small_talks(
-    tag: Optional[str] = None,
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=10, le=100),
-    db: MySQLConnector = Depends(get_db)
+        tag: Optional[str] = None,
+        page: int = Query(default=1, ge=1),
+        size: int = Query(default=10, le=100),
+        db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 목록 조회 (페이지네이션)"""
     count_query = "SELECT COUNT(*) as total FROM small_talk WHERE 1=1"
@@ -97,10 +103,10 @@ async def get_small_talks(
 
 @router.get("/sentence")
 async def get_sentence(
-    current_user=Depends(get_current_user),
-    direction: Direction = Direction.CURRENT,
-    current_talk_id: Optional[int] = None,
-    db: MySQLConnector = Depends(get_db)
+        current_user=Depends(get_current_user),
+        direction: Direction = Direction.CURRENT,
+        current_talk_id: Optional[int] = None,
+        db: MySQLConnector = Depends(get_db)
 ):
     """사용자별 스몰톡 문장 조회 (현재/이전/다음)"""
     try:
@@ -224,6 +230,7 @@ async def get_sentence(
             detail=f"An unexpected error occurred: {str(e)}"
         )
 
+
 @router.get("/{talk_id}", response_model=SmallTalk)
 async def get_small_talk(talk_id: int, db: MySQLConnector = Depends(get_db)):
     """스몰톡 상세 조회"""
@@ -235,11 +242,12 @@ async def get_small_talk(talk_id: int, db: MySQLConnector = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Small talk not found")
     return result[0]
 
+
 @router.post("/", response_model=SmallTalk)
 async def create_small_talk(
-    small_talk: SmallTalkCreate,
-    current_user = Depends(get_current_user),
-    db: MySQLConnector = Depends(get_db)
+        small_talk: SmallTalkCreate,
+        current_user=Depends(get_current_user),
+        db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 생성 (관리자 권한 필요)"""
     if not current_user.is_admin:
@@ -256,12 +264,13 @@ async def create_small_talk(
     )
     return created[0]
 
+
 @router.put("/{talk_id}", response_model=SmallTalk)
 async def update_small_talk(
-    talk_id: int,
-    small_talk: SmallTalkUpdate,
-    current_user = Depends(get_current_user),
-    db: MySQLConnector = Depends(get_db)
+        talk_id: int,
+        small_talk: SmallTalkUpdate,
+        current_user=Depends(get_current_user),
+        db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 전체 수정 (관리자 권한 필요)"""
     if not current_user.is_admin:
@@ -281,12 +290,13 @@ async def update_small_talk(
     )
     return updated[0]
 
+
 @router.patch("/{talk_id}", response_model=SmallTalk)
 async def patch_small_talk(
-    talk_id: int,
-    small_talk: SmallTalkPatch,
-    current_user = Depends(get_current_user),
-    db: MySQLConnector = Depends(get_db)
+        talk_id: int,
+        small_talk: SmallTalkPatch,
+        current_user=Depends(get_current_user),
+        db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 부분 수정 (관리자 권한 필요)"""
     if not current_user.is_admin:
@@ -313,11 +323,12 @@ async def patch_small_talk(
     )
     return updated[0]
 
+
 @router.delete("/{talk_id}")
 async def delete_small_talk(
-    talk_id: int,
-    current_user = Depends(get_current_user),
-    db: MySQLConnector = Depends(get_db)
+        talk_id: int,
+        current_user=Depends(get_current_user),
+        db: MySQLConnector = Depends(get_db)
 ):
     """스몰톡 삭제 (관리자 권한 필요)"""
     if not current_user.is_admin:

@@ -1,9 +1,11 @@
 # utils/slack_sender.py
+import logging
+from typing import List, Dict, Any
+
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+
 from configs.slack_setting import get_credentials
-from typing import List, Dict, Any
-import logging
 
 logger = logging.getLogger(__name__)
 

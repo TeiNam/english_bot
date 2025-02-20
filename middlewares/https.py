@@ -1,7 +1,8 @@
 # middlewares/https.py
+from typing import Callable
+
 from fastapi import Request
 from fastapi.responses import RedirectResponse
-from typing import Callable
 
 
 async def https_redirect_middleware(request: Request, call_next: Callable):

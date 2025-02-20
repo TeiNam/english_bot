@@ -1,9 +1,10 @@
 # middlewares/router.py
-from fastapi import FastAPI
-from pathlib import Path
-from importlib import import_module
-from typing import List
 import logging
+from importlib import import_module
+from pathlib import Path
+from typing import List
+
+from fastapi import FastAPI
 
 logger = logging.getLogger(__name__)
 

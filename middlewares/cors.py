@@ -1,7 +1,8 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import os
 from enum import Enum
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 
 class Environment(str, Enum):

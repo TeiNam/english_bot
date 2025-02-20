@@ -1,10 +1,11 @@
 # chat/chat_settings.py
-from typing import Dict, Optional
 import logging
-from utils.mysql_connector import MySQLConnector
-from utils.cache_manager import CacheManager
-from chat.exceptions import DatabaseError, UserSettingsError
+from typing import Dict, Optional
+
 from chat.constants import CACHE_KEYS, DB_TABLES, CACHE_TTL, DEFAULT_CHAT_SETTINGS
+from chat.exceptions import DatabaseError, UserSettingsError
+from utils.cache_manager import CacheManager
+from utils.mysql_connector import MySQLConnector
 
 logger = logging.getLogger(__name__)
 

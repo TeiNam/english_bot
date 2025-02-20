@@ -1,11 +1,13 @@
 # bots/openai_bot.py
-from typing import List, Dict, Optional, Tuple
 import logging
+from typing import List, Dict, Optional, Tuple
+
 from openai import AsyncOpenAI
-from chat.exceptions import OpenAIError
-from configs.openai_setting import get_openai_settings
-from chat.prompt_manager import PromptManager
+
 from chat.chat_settings import ChatSettingsManager
+from chat.exceptions import OpenAIError
+from chat.prompt_manager import PromptManager
+from configs.openai_setting import get_openai_settings
 
 logger = logging.getLogger(__name__)
 

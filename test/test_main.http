@@ -78,8 +78,8 @@ POST http://localhost:8000/api/v1/auth/login
 Content-Type: application/json
 
 {
-    "email": "teinam@rastalion.me",
-    "password": "Rjadmsrhdid2@"
+  "email": "teinam@rastalion.me",
+  "password": "Rjadmsrhdid2@"
 }
 
 ### 응답으로 받은 토큰을 환경변수로 설정
@@ -125,10 +125,10 @@ Authorization: Bearer your_access_token_here
 Content-Type: application/json
 
 {
-    "eng_sentence": "How's the weather today?",
-    "kor_sentence": "오늘 날씨가 어때요?",
-    "parenthesis": "날씨에 대해 묻는 표현",
-    "tag": "날씨"
+  "eng_sentence": "How's the weather today?",
+  "kor_sentence": "오늘 날씨가 어때요?",
+  "parenthesis": "날씨에 대해 묻는 표현",
+  "tag": "날씨"
 }
 
 ### 10. 스몰톡 전체 수정 (관리자 토큰 필요)
@@ -137,10 +137,10 @@ Authorization: Bearer your_access_token_here
 Content-Type: application/json
 
 {
-    "eng_sentence": "The weather is nice today.",
-    "kor_sentence": "오늘 날씨가 좋네요.",
-    "parenthesis": "날씨에 대한 의견",
-    "tag": "날씨"
+  "eng_sentence": "The weather is nice today.",
+  "kor_sentence": "오늘 날씨가 좋네요.",
+  "parenthesis": "날씨에 대한 의견",
+  "tag": "날씨"
 }
 
 ### 11. 스몰톡 부분 수정 (관리자 토큰 필요)
@@ -149,7 +149,7 @@ Authorization: Bearer your_access_token_here
 Content-Type: application/json
 
 {
-    "eng_sentence": "The weather is beautiful today."
+  "eng_sentence": "The weather is beautiful today."
 }
 
 ### 12. 스몰톡 삭제 (관리자 토큰 필요)
@@ -171,7 +171,7 @@ Authorization: Bearer normal_user_token
 Content-Type: application/json
 
 {
-    "eng_sentence": "Test sentence",
-    "kor_sentence": "테스트 문장",
-    "tag": "테스트"
+  "eng_sentence": "Test sentence",
+  "kor_sentence": "테스트 문장",
+  "tag": "테스트"
 }

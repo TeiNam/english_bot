@@ -1,9 +1,10 @@
 # utils/dependencies.py
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from utils.auth import verify_token
 from utils.mysql_connector import MySQLConnector
-import jwt
 
 security = HTTPBearer()
 
@@ -30,6 +31,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             detail="유효하지 않은 인증 토큰",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
 
 def get_mysql_connection():
     """MySQL 데이터베이스 커넥터 인스턴스 반환"""

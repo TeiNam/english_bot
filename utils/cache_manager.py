@@ -1,8 +1,9 @@
 # utils/cache_manager.py
-import redis
 import json
-from typing import Optional, Any
 import logging
+from typing import Optional, Any
+
+import redis
 
 logger = logging.getLogger(__name__)
 

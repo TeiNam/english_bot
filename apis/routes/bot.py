@@ -1,9 +1,11 @@
 # apis/routes/bot.py
+import logging
+
 from fastapi import APIRouter, HTTPException
+
 from bots.english_bot import english_bot
 from utils.mysql_connector import MySQLConnector
 from utils.scheduler import message_scheduler
-import logging
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -111,6 +113,7 @@ async def send_message_now():
             status_code=500,
             detail=f"Internal server error while sending message: {str(e)}"
         )
+
 
 @router.get("/bot-status")
 async def get_bot_status():

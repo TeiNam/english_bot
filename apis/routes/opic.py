@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, Optional
-from apis.models.opic import Opic, OpicCreate, OpicUpdate, OpicResponse, SectionType
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
 from apis.deps import get_db
+from apis.models.opic import Opic, OpicCreate, OpicUpdate, OpicResponse, SectionType
 from utils.mysql_connector import MySQLConnector
 
 router = APIRouter(prefix="/api/v1/opic", tags=["opic"])
 
+
 @router.get("/count", response_model=Dict[str, int])
 async def get_opics_count(
-    db: MySQLConnector = Depends(get_db)
+        db: MySQLConnector = Depends(get_db)
 ) -> Dict[str, int]:
     """오픽 서베이 전체 개수 조회"""
     try:
@@ -31,6 +34,7 @@ async def get_opics_count(
             status_code=500,
             detail=f"오픽 서베이 수 조회 실패: {str(e)}"
         )
+
 
 @router.post("/", response_model=Opic)
 async def create_opic(

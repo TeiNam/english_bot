@@ -1,25 +1,25 @@
 # apis/routes/chat.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
-import logging
 import asyncio
+import logging
+from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.responses import Response
 
-from utils.auth import get_current_user, User
+from apis.models.chat import (
+    ChatHistoryResponse,
+    ConversationResponse,
+    ChatStreamRequest
+)
+from bots.openai_bot import OpenAIBot
+from chat.chat_manager import ChatManager
 from chat.exceptions import (
     ChatBaseException,
     DatabaseError,
     ConversationNotFound,
     OpenAIError
 )
-from chat.chat_manager import ChatManager
-from bots.openai_bot import OpenAIBot
-from apis.models.chat import (
-    ChatHistoryResponse,
-    ConversationResponse,
-    ChatStreamRequest
-)
+from utils.auth import get_current_user, User
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +90,8 @@ async def get_user_conversations(
 
 @router.get("/history/{conversation_id}", response_model=List[ChatHistoryResponse])
 async def get_chat_history(
-    conversation_id: str,
-    current_user: User = Depends(get_current_user)
+        conversation_id: str,
+        current_user: User = Depends(get_current_user)
 ):
     """대화 내역 조회"""
     try:
