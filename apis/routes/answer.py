@@ -70,7 +70,7 @@ async def get_answers(
 
 
 # 생성/수정/삭제는 인증 필요
-@router.post("/", response_model=Answer)
+@router.post("", response_model=Answer)
 async def create_answer(
         answer: AnswerCreate,
         current_user=Depends(get_current_user),

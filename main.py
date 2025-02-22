@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from middlewares.cors import setup_cors_middleware
-from middlewares.https import https_redirect_middleware
 from middlewares.json_handler import raw_json_middleware
 from middlewares.router import setup_routers
 from utils.scheduler import message_scheduler
@@ -22,7 +21,6 @@ app = FastAPI(title="English Bot API", lifespan=lifespan)
 # 미들웨어 설정
 setup_cors_middleware(app)
 app.middleware("http")(raw_json_middleware)
-app.middleware("http")(https_redirect_middleware)
 
 # 라우터 자동 설정
 setup_routers(app)
