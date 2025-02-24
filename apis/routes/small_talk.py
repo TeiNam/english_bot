@@ -101,6 +101,153 @@ async def get_small_talks(
     }
 
 
+@router.get("/search", response_model=PaginatedSmallTalk)
+async def search_small_talks(
+        query: Optional[str] = None,
+        page: int = 1,
+        size: int = 10,
+        db: MySQLConnector = Depends(get_db)
+):
+    """스몰톡 풀텍스트 검색 (페이지네이션)"""
+    try:
+        # 검색어 유효성 검사
+        if not query or len(query.strip()) == 0:
+            return {
+                "items": [],
+                "total": 0,
+                "page": page,
+                "size": size,
+                "total_pages": 0,
+                "has_next": False,
+                "has_prev": False
+            }
+
+        # 페이지 및 사이즈 유효성 검사
+        page = max(1, page)
+        size = min(max(1, size), 100)
+
+        # 검색 방식 결정: 2글자 이상이면 풀텍스트 검색, 그렇지 않으면 LIKE 검색
+        use_fulltext = len(query.strip()) >= 2
+
+        if use_fulltext:
+            try:
+                # 풀텍스트 검색 쿼리
+                count_query = """
+                    SELECT COUNT(*) as total 
+                    FROM small_talk 
+                    WHERE MATCH(eng_sentence, kor_sentence, parenthesis, tag) 
+                    AGAINST (%(query)s IN BOOLEAN MODE)
+                """
+                count_params = {'query': f"{query}*"}
+
+                total_result = db.execute_raw_query(count_query, count_params)
+                total = total_result[0]['total'] if total_result else 0
+
+                # 결과가 있으면 풀텍스트 검색 쿼리 준비
+                if total > 0:
+                    search_query = """
+                        SELECT talk_id, eng_sentence, kor_sentence, parenthesis, tag, create_at, update_at,
+                               MATCH(eng_sentence, kor_sentence, parenthesis, tag) 
+                               AGAINST (%(query)s IN BOOLEAN MODE) as relevance
+                        FROM small_talk
+                        WHERE MATCH(eng_sentence, kor_sentence, parenthesis, tag) 
+                        AGAINST (%(query)s IN BOOLEAN MODE)
+                        ORDER BY relevance DESC, talk_id DESC
+                        LIMIT %(limit)s OFFSET %(offset)s
+                    """
+                    search_params = {
+                        'query': f"{query}*",
+                        'limit': size,
+                        'offset': (page - 1) * size
+                    }
+                else:
+                    # 풀텍스트 검색 결과가 없으면 LIKE 검색으로 전환
+                    raise Exception("No results from fulltext search")
+            except Exception as e:
+                # 풀텍스트 검색 실패 시 LIKE 검색으로 전환
+                use_fulltext = False
+
+        # LIKE 검색 사용 (풀텍스트 검색 실패 또는 검색어가 짧을 경우)
+        if not use_fulltext:
+            search_term = f"%{query}%"
+
+            count_query = """
+                SELECT COUNT(*) as total 
+                FROM small_talk 
+                WHERE eng_sentence LIKE %(search)s 
+                   OR kor_sentence LIKE %(search)s 
+                   OR parenthesis LIKE %(search)s 
+                   OR tag LIKE %(search)s
+            """
+            count_params = {'search': search_term}
+
+            total_result = db.execute_raw_query(count_query, count_params)
+            total = total_result[0]['total'] if total_result else 0
+
+            search_query = """
+                SELECT talk_id, eng_sentence, kor_sentence, parenthesis, tag, create_at, update_at
+                FROM small_talk
+                WHERE eng_sentence LIKE %(search)s 
+                   OR kor_sentence LIKE %(search)s 
+                   OR parenthesis LIKE %(search)s 
+                   OR tag LIKE %(search)s
+                ORDER BY talk_id DESC
+                LIMIT %(limit)s OFFSET %(offset)s
+            """
+            search_params = {
+                'search': search_term,
+                'limit': size,
+                'offset': (page - 1) * size
+            }
+
+        # 검색 결과가 없으면 빈 결과 반환
+        if total == 0:
+            return {
+                "items": [],
+                "total": 0,
+                "page": page,
+                "size": size,
+                "total_pages": 0,
+                "has_next": False,
+                "has_prev": False
+            }
+
+        # 페이지네이션 계산
+        total_pages = (total + size - 1) // size
+
+        # 결과 조회
+        items = db.execute_raw_query(search_query, search_params)
+
+        # relevance 필드 제거 (반환 구조를 일관되게 유지하기 위해)
+        if use_fulltext:
+            for item in items:
+                if 'relevance' in item:
+                    del item['relevance']
+
+        # 결과 반환
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "size": size,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+
+    except Exception as e:
+        # 오류 로깅
+        import traceback
+        print(f"Search error: {str(e)}")
+        print(traceback.format_exc())
+
+        # 클라이언트에 오류 반환
+        raise HTTPException(
+            status_code=500,
+            detail=f"검색 중 오류가 발생했습니다: {str(e)}"
+        )
+
+
 @router.get("/sentence")
 async def get_sentence(
         current_user=Depends(get_current_user),
@@ -364,3 +511,5 @@ async def delete_small_talk(
             status_code=500,
             detail=f"Failed to delete small talk: {str(e)}"
         )
+
+
