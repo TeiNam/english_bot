@@ -79,7 +79,7 @@ Content-Type: application/json
 
 {
   "email": "teinam@rastalion.me",
-  "password": "Rjadmsrhdid2@"
+  "password": ""
 }
 
 ### 응답으로 받은 토큰을 환경변수로 설정
