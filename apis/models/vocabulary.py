@@ -3,12 +3,14 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class RuleType(str, Enum):
+    """단어 규칙성 타입 Enum"""
     REGULAR = "규칙"
     IRREGULAR = "불규칙"
+    NO_RULE = "규칙없음"  # 테이블 정의에 맞게 추가
 
 
 class VocabularyMeaningCreate(BaseModel):
@@ -17,6 +19,14 @@ class VocabularyMeaningCreate(BaseModel):
     classes: str = Field(default="기타")  # 기본값 설정
     example: str = Field(default="예문 없음")  # 기본값 설정
     parenthesis: Optional[str] = None
+
+    @field_validator('classes')
+    @classmethod
+    def validate_classes(cls, v: str) -> str:
+        """'분류없음'을 '기타'로 변환"""
+        if not v or v == "" or v == "분류없음":
+            return "기타"
+        return v
 
 
 class VocabularyMeaning(BaseModel):
@@ -37,7 +47,7 @@ class VocabularyCreate(BaseModel):
     word: str
     past_tense: Optional[str] = None  # null 허용
     past_participle: Optional[str] = None  # null 허용
-    rule: RuleType = RuleType.REGULAR  # 기본값 '규칙'
+    rule: RuleType = RuleType.NO_RULE  # 기본값 '규칙없음'으로 변경
     meanings: List[VocabularyMeaningCreate]
 
 
