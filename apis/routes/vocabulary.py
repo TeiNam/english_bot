@@ -31,16 +31,39 @@ async def search_vocabularies(
 ):
     """단어 전문 검색 (영어 단어)"""
     try:
-        count_query = """
-            SELECT COUNT(*) as total 
-            FROM vocabulary 
+        # 먼저 모든 vocabulary_id를 가져옵니다 (중복 없이)
+        id_query = """
+            SELECT DISTINCT v.vocabulary_id, v.create_at 
+            FROM vocabulary v
             WHERE MATCH(word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE)
+            ORDER BY MATCH(v.word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE) DESC, v.create_at DESC
         """
-        total = db.execute_raw_query(count_query, {'query': q})[0]['total']
-        total_pages = (total + size - 1) // size
+        all_ids = db.execute_raw_query(id_query, {'query': q})
+
+        # 전체 고유 단어 수 계산
+        total = len(all_ids)
+
+        # 페이지네이션 계산
+        total_pages = (total + size - 1) // size if total > 0 else 1
         offset = (page - 1) * size
 
-        query = """
+        # 현재 페이지에 해당하는 ID만 필터링
+        page_ids = [row['vocabulary_id'] for row in all_ids[offset:offset + size]]
+
+        if not page_ids:
+            return {
+                "items": [],
+                "total": total,
+                "page": page,
+                "size": size,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+                "has_prev": page > 1
+            }
+
+        # ID 목록으로 상세 정보 쿼리
+        placeholders = ','.join(['%s'] * len(page_ids))
+        query = f"""
             SELECT 
                 v.vocabulary_id, v.word, v.past_tense, v.past_participle, v.rule, 
                 v.cycle, v.create_at, v.update_at,
@@ -48,15 +71,12 @@ async def search_vocabularies(
                 vm.order_no, vm.create_at as meaning_create_at, vm.update_at as meaning_update_at
             FROM vocabulary v
             LEFT JOIN vocabulary_meaning vm ON v.vocabulary_id = vm.vocabulary_id
-            WHERE MATCH(v.word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE)
-            ORDER BY MATCH(v.word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE) DESC, v.create_at DESC
-            LIMIT %(limit)s OFFSET %(offset)s
+            WHERE v.vocabulary_id IN ({placeholders})
+            ORDER BY FIELD(v.vocabulary_id, {placeholders})
         """
-        results = db.execute_raw_query(query, {
-            'query': q,
-            'limit': size,
-            'offset': offset
-        })
+
+        # 파라미터를 두 번 포함시켜야 합니다 (IN 절과 ORDER BY FIELD 절)
+        results = db.execute_raw_query(query, page_ids + page_ids)
 
         items = _group_vocabulary_results(results)
         return {
@@ -98,30 +118,58 @@ async def get_vocabularies(
 ):
     """단어 목록 조회 (페이지네이션)"""
     try:
-        # 전체 데이터 수 조회
-        total = db.execute_raw_query("SELECT COUNT(*) as total FROM vocabulary")[0]['total']
-        total_pages = (total + size - 1) // size
+        # 먼저 모든 vocabulary_id를 가져옵니다 (중복 없이)
+        id_query = """
+            SELECT DISTINCT vocabulary_id, create_at 
+            FROM vocabulary
+            ORDER BY create_at DESC
+        """
+        all_ids = db.execute_raw_query(id_query)
+
+        # 전체 고유 단어 수 계산
+        total = len(all_ids)
+
+        # 페이지네이션 계산
+        total_pages = (total + size - 1) // size if total > 0 else 1
         offset = (page - 1) * size
 
-        # 데이터 조회
-        query = """
-                SELECT 
-                    v.*, 
-                    vm.meaning_id,
-                    vm.meaning,
-                    vm.classes,
-                    vm.example,
-                    vm.parenthesis,
-                    vm.order_no,
-                    vm.create_at as meaning_create_at,
-                    vm.update_at as meaning_update_at
-                FROM vocabulary v
-                LEFT JOIN vocabulary_meaning vm 
-                    ON v.vocabulary_id = vm.vocabulary_id
-                ORDER BY v.create_at DESC
-                LIMIT %(limit)s OFFSET %(offset)s
-            """
-        results = db.execute_raw_query(query, {'limit': size, 'offset': offset})
+        # 현재 페이지에 해당하는 ID만 필터링
+        page_ids = [row['vocabulary_id'] for row in all_ids[offset:offset + size]]
+
+        if not page_ids:
+            return {
+                "items": [],
+                "total": total,
+                "page": page,
+                "size": size,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+                "has_prev": page > 1
+            }
+
+        # ID 목록으로 상세 정보 쿼리
+        placeholders = ','.join(['%s'] * len(page_ids))
+        query = f"""
+            SELECT 
+                v.*, 
+                vm.meaning_id,
+                vm.meaning,
+                vm.classes,
+                vm.example,
+                vm.parenthesis,
+                vm.order_no,
+                vm.create_at as meaning_create_at,
+                vm.update_at as meaning_update_at
+            FROM vocabulary v
+            LEFT JOIN vocabulary_meaning vm 
+                ON v.vocabulary_id = vm.vocabulary_id
+            WHERE v.vocabulary_id IN ({placeholders})
+            ORDER BY FIELD(v.vocabulary_id, {placeholders})
+        """
+
+        # 파라미터를 두 번 포함시켜야 합니다 (IN 절과 ORDER BY FIELD 절)
+        results = db.execute_raw_query(query, page_ids + page_ids)
+
         items = _group_vocabulary_results(results)
 
         return {
