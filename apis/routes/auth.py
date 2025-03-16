@@ -46,7 +46,7 @@ async def login(user_data: UserLogin):
     # 토큰 생성
     access_token = create_access_token(
         data={"sub": user.email, "user_id": user.user_id},  # user_id도 토큰에 포함
-        expires_delta=timedelta(minutes=1440)  # 24시간
+        expires_delta=timedelta(days=7)  # 7일로 변경
     )
 
     return {
@@ -66,7 +66,7 @@ async def refresh_token(current_user=Depends(get_current_user)):
     try:
         new_access_token = create_access_token(
             data={"sub": current_user.email, "user_id": current_user.user_id},
-            expires_delta=timedelta(minutes=1440)  # 24시간
+            expires_delta=timedelta(days=7)  # 7일로 변경
         )
 
         return {
