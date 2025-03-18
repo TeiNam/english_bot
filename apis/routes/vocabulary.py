@@ -33,10 +33,11 @@ async def search_vocabularies(
     try:
         # 먼저 모든 vocabulary_id를 가져옵니다 (중복 없이)
         id_query = """
-            SELECT DISTINCT v.vocabulary_id, v.create_at 
+            SELECT DISTINCT v.vocabulary_id, v.create_at,
+                   MATCH(v.word) AGAINST(%(query)s IN BOOLEAN MODE) as relevance
             FROM vocabulary v
-            WHERE MATCH(word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE)
-            ORDER BY MATCH(v.word) AGAINST(%(query)s IN NATURAL LANGUAGE MODE) DESC, v.create_at DESC
+            WHERE MATCH(v.word) AGAINST(%(query)s IN BOOLEAN MODE)
+            ORDER BY relevance DESC, v.create_at DESC
         """
         all_ids = db.execute_raw_query(id_query, {'query': q})
 
