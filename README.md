@@ -1,51 +1,71 @@
-# English Learning Platform
+# 🌱 English Learning Platform
+
+![Python](https://img.shields.io/badge/Python-3.12-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange.svg)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-purple.svg)
+![Slack](https://img.shields.io/badge/Slack-SDK-red.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-lightblue.svg)
 
 영어 학습을 위한 종합 플랫폼으로, Slack을 통한 자동화된 학습 컨텐츠 전송과 AI 기반의 학습 도구를 제공합니다.
+
+## 📋 목차
+
+- [주요 기능](#-주요-기능)
+- [기술 스택](#-기술-스택)
+- [시작하기](#-시작하기)
+- [프로젝트 구조](#-프로젝트-구조)
+- [API 엔드포인트](#-주요-api-엔드포인트)
+- [데이터베이스 구조](#-데이터베이스-구조)
+- [사이클 시스템](#-사이클-시스템)
+- [모니터링](#-모니터링)
+- [기여하기](#-기여하기)
+- [라이선스](#-라이선스)
 
 ## 🌟 주요 기능
 
 ### 1. 자동화된 영어 학습 시스템
 
-- 일일 정해진 시간에 영어 문장 자동 발송 (09:00, 13:00, 17:00, 20:00)
-- 사이클 기반의 반복 학습 시스템으로 효율적인 학습 관리
-- Slack을 통한 실시간 학습 컨텐츠 전달
+- ⏰ 일일 정해진 시간에 영어 문장 자동 발송 (09:00, 13:00, 17:00, 20:00)
+- 🔄 사이클 기반의 반복 학습 시스템으로 효율적인 학습 관리
+- 💬 Slack을 통한 실시간 학습 컨텐츠 전달
 
 ### 2. AI 기반 학습 도구
 
-- OpenAI GPT 기반의 대화형 학습 보조
-- 영어 일기 작성 및 AI 피드백 시스템
-- 맞춤형 프롬프트 템플릿 관리
+- 🤖 OpenAI GPT 기반의 대화형 학습 보조
+- 📝 영어 일기 작성 및 AI 피드백 시스템
+- 📋 맞춤형 프롬프트 템플릿 관리
 
 ### 3. 종합 학습 컨텐츠 관리
 
-- 단어장 관리 (과거형, 과거분사, 의미, 예문 포함)
-- Small Talk 문장 관리
-- OPic 대비 문제은행
-- 문법 학습 자료 관리
+- 📚 단어장 관리 (과거형, 과거분사, 의미, 예문 포함)
+- 💭 Small Talk 문장 관리
+- 🎯 OPic 대비 문제은행
+- 📐 문법 학습 자료 관리
 
 ### 4. 사용자 맞춤 시스템
 
-- 개인화된 학습 설정
-- 학습 이력 추적
-- 대화 기록 관리
+- 👤 개인화된 학습 설정
+- 📊 학습 이력 추적
+- 🗣️ 대화 기록 관리
 
 ## 🛠 기술 스택
 
 ### Backend
 
-- **Framework**: FastAPI
-- **Language**: Python 3.12
-- **AI Integration**: OpenAI GPT API
-- **Database**: MySQL 8.0
-- **Cache**: Redis
-- **Message Platform**: Slack SDK
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/) 0.115+
+- **Language**: [Python](https://www.python.org/) 3.12
+- **AI Integration**: [OpenAI GPT API](https://openai.com/api/)
+- **Database**: [MySQL](https://www.mysql.com/) 8.0
+- **Cache**: [Redis](https://redis.io/)
+- **Message Platform**: [Slack SDK](https://slack.dev/python-slack-sdk/)
 
 ### Infrastructure
 
-- **Containerization**: Docker, Docker Compose
-- **Task Scheduling**: APScheduler
-- **Authentication**: JWT
-- **API Documentation**: OpenAPI (Swagger)
+- **Containerization**: [Docker](https://www.docker.com/), [Docker Compose](https://docs.docker.com/compose/)
+- **Task Scheduling**: [APScheduler](https://apscheduler.readthedocs.io/)
+- **Authentication**: [JWT](https://jwt.io/)
+- **API Documentation**: [OpenAPI](https://www.openapis.org/) (Swagger)
 
 ## 🚀 시작하기
 
@@ -72,14 +92,24 @@ cp .env.example .env
 
 ### 3. 실행 방법
 
+#### Docker Compose 사용
+
 ```bash
 # Docker Compose로 실행
 docker-compose up -d
+```
 
-# 로컬 개발 환경 실행
+#### 로컬 개발 환경 사용
+
+```bash
+# 가상 환경 설정
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 의존성 설치
 pip install -r requirements.txt
+
+# 애플리케이션 실행
 uvicorn main:app --reload
 ```
 
@@ -99,7 +129,7 @@ SLACK_CHANNEL_ID=your-channel-id
 
 # OpenAI 설정
 OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL_NAME=gpt-4
+OPENAI_MODEL_NAME=gpt-4o
 OPENAI_TEMPERATURE=0.7
 OPENAI_MAX_TOKENS=2000
 
@@ -119,6 +149,8 @@ english-bot/
 │   ├── models/        # Pydantic 모델
 │   └── routes/        # API 라우트
 ├── bots/              # 봇 구현
+│   ├── english_bot.py # 영어 봇 구현
+│   └── openai_bot.py  # OpenAI 봇 구현
 ├── chat/              # 채팅 관련 기능
 ├── configs/           # 설정 파일
 ├── diary/             # 일기 관련 기능
@@ -130,11 +162,11 @@ english-bot/
 
 ## 🔐 보안 기능
 
-- JWT 기반 인증
-- CORS 보호
-- 비밀번호 해싱 (PBKDF2)
-- 환경 변수 기반 설정
-- 관리자 권한 시스템
+- 🔒 JWT 기반 인증
+- 🛡️ CORS 보호
+- 🔑 비밀번호 해싱 (PBKDF2)
+- 🔧 환경 변수 기반 설정
+- 👮 관리자 권한 시스템
 
 ## 📚 주요 API 엔드포인트
 
@@ -171,6 +203,9 @@ english-bot/
 - `diary`: 영어 일기
 - `chat_history`: 채팅 기록
 - `prompt_template`: 프롬프트 템플릿
+- `user`: 사용자 정보
+- `conversation_session`: 대화 세션 정보
+- `user_chat_setting`: 사용자 채팅 설정
 
 ## 🔄 사이클 시스템
 
@@ -181,10 +216,10 @@ english-bot/
 
 ## 📊 모니터링
 
-- API 상태: `/health` 엔드포인트
-- 봇 상태: `/api/v1/bot/bot-status`
-- 스케줄러 상태: 로그 및 API를 통한 모니터링
-- 상세 로깅: 각 구성 요소별 로그 기록
+- **API 상태**: `/health` 엔드포인트로 확인
+- **봇 상태**: `/api/v1/bot/bot-status`로 확인
+- **스케줄러 상태**: 로그 및 API를 통한 모니터링
+- **상세 로깅**: 각 구성 요소별 로그 기록
 
 ## 🤝 기여하기
 
